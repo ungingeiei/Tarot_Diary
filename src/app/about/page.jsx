@@ -8,8 +8,9 @@ export default function About() {
                 <img src="/logo.svg" alt="Tarot Diary Logo" />
             </nav>
 
-            <section className="about-hero">
+            <section className="about-top">
                 <div className="about-content">
+                    <img src="/about/about-tarot.svg" alt="about-tarot" />
                     <h1>
                         <span>Unveil What</span>
                         <span>Lies Within</span>
