@@ -12,12 +12,23 @@ function DrawContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "";
+  const period = searchParams.get("period") || "";
+
   const [revealing, setRevealing] = useState(false);
 
   const handleReveal = () => {
     setRevealing(true);
     window.setTimeout(() => {
-      router.push(`/reading${category ? `?category=${category}` : ""}`);
+
+      const params = new URLSearchParams();
+      if (category) {
+        params.set("category", category);
+      }
+      if (period) {
+        params.set("period", period);
+      }
+      router.push(`/reading?${params.toString()}`);
+
     }, 900);
   };
 

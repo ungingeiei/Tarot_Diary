@@ -5,13 +5,18 @@ import { useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { TarotCard } from "../../components/TarotVisual";
 import { ShareReadingModal } from "../../components/ShareReadingModal";
-import { fetchDailyCard } from "../../data/cards";
+
+import { fetchDailyCard, fetchTimeCard } from "../../data/cards";
+
 import { isSignedIn } from "../../lib/auth";
 import { saveDiaryEntry } from "../../lib/diary";
 
 function ReadingContent() {
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "";
+
+  const period = searchParams.get("period") || "";
+
 
   const [card, setCard] = useState(null);
   const [saved, setSaved] = useState(false);
@@ -24,14 +29,21 @@ function ReadingContent() {
     setSaved(false);
 
     // Stand-in for: fetch(`/api/cards/daily?category=${category}`)
-    fetchDailyCard(category).then((result) => {
+
+    const fetchCard = period
+      ? fetchTimeCard(period)
+      : fetchDailyCard(category);
+
+    fetchCard.then((result) => {
       if (!cancelled) setCard(result);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [category]);
+
+  }, [category, period]);
+
 
   // Auto-dismiss the save toast.
   useEffect(() => {
