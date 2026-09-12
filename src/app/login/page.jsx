@@ -2,19 +2,74 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AuthField } from "../../components/AuthField";
 import { BrandMark, TarotCard } from "../../components/TarotVisual";
+import { signIn } from "../../lib/auth";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  // ---------------------------------------------------------------------
+  // LOGIN SUBMIT — TWO VERSIONS BELOW. Exactly ONE should be active
+  // (not commented out) at a time; the other stays commented out as a
+  // reference. To switch: comment out the block you're not using and
+  // uncomment the other one — don't delete either.
+  // ---------------------------------------------------------------------
+
+  // // ─── TEST MODE (currently ACTIVE) ───────────────────────────────────
+  // // No real backend check — any email/password combo "succeeds" after
+  // // a fake delay. Good for clicking through the app during development.
+  // // This is the code referenced in the earlier answer about what makes
+  // // the login button clickable without a real account.
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   setError("");
+  //   setLoading(true);
+  //   // Stand-in for: POST /api/auth/login
+  //   window.setTimeout(() => {
+  //     setLoading(false);
+  //     signIn({ name: email.split("@")[0] || "Seeker", email });
+  //     router.push("/category");
+  //   }, 1200);
+  // };
+
+  // //---------------------------------------------------------------------
+
+  // ─── REAL MODE (commented out) ──────────────────────────────────────
+  // Actually calls a backend endpoint and only signs the user in if the
+  // server confirms the credentials. To activate: delete/comment out
+  // the TEST MODE handleSubmit above, then uncomment this one. Adjust
+  // the fetch URL/response shape to match your real API.
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    window.setTimeout(() => setLoading(false), 1200);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Invalid email or password");
+      }
+      const user = await res.json(); // expect e.g. { name, email }
+      signIn({ name: user.name || email.split("@")[0] || "Seeker", email });
+      router.push("/category");
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+//---------------------------------------------------------------------
 
   return (
     <main className="auth-page login-page">
@@ -42,6 +97,10 @@ export default function LoginPage() {
               <span />
               <button type="button">Forgot your password?</button>
             </div>
+
+            {/* Only ever populated when REAL MODE's handleSubmit sets an
+                error (TEST MODE never fails, so this stays empty/hidden). */}
+            {error && <p className="login-error">{error}</p>}
 
             <button className="gold-button" type="submit" disabled={loading}>
               {loading ? "SIGNING IN..." : "SIGN IN"}
