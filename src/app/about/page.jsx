@@ -8,14 +8,14 @@ export default function About() {
                 <img src="/logo.svg" alt="Tarot Diary Logo" />
             </nav>
 
-            <section className="about-hero">
+            <section className="about-top">
                 <div className="about-content">
+                    <img src="/about/about-tarot.svg" alt="about-tarot" />
                     <h1>
                         <span>Unveil What</span>
                         <span>Lies Within</span>
                     </h1>
-
-                    <div className="about-line"></div>
+                    <img src="/about/line.svg" alt="line" />
 
                     <p>
                         Ancient wisdom, decoded for the modern seeker.
@@ -24,8 +24,9 @@ export default function About() {
                 </div>
 
                 <div className="about-card">
-                    <TarotCard />
+                    <img src="/about/tarot-card-about.svg" alt="The High Priestess" />
                 </div>
+
             </section>
 
             <section className="about-description">
