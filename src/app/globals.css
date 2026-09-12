@@ -66,7 +66,7 @@ a { color: inherit; }
 .forgot-row button { border: 0; background: transparent; color: rgba(201,169,110,.52); padding: 0; font-size: 11px; cursor: pointer; }
 .forgot-row button:hover { color: var(--gold); }
 .login-error { margin: -4px 0 0; color: #FF5053; font-size: 12.5px; }
-th: 100%; border: 1px solid rgba(201,169,110,.35); border-radius: 2px; padding: 14px 16px; margin-top: 4px; background: linear-gradient(135deg, #c9a96e 0%, #b8935a 100%); color: #09090f; font-size: 11px; font-weight: 600; letter-spacing: .2em; cursor: pointer; transition: transform .2s, box-shadow .2s, opacity .2s; }
+.gold-button { width: 100%; border: 1px solid rgba(201,169,110,.35); border-radius: 2px; padding: 14px 16px; margin-top: 4px; background: linear-gradient(135deg, #c9a96e 0%, #b8935a 100%); color: #09090f; font-size: 11px; font-weight: 600; letter-spacing: .2em; cursor: pointer; transition: transform .2s, box-shadow .2s, opacity .2s; }
 .gold-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(201,169,110,.18); }
 .gold-button:disabled { opacity: .42; cursor: wait; }
 .or-divider { display: flex; align-items: center; gap: 12px; margin: 26px 0 18px; }
@@ -112,8 +112,6 @@ th: 100%; border: 1px solid rgba(201,169,110,.35); border-radius: 2px; padding: 
   .brand-name { font-size: 12px; }
   .auth-footer { font-size: 10px; bottom: 18px; }
   .register-footer { bottom: 18px; }
-<<<<<<< HEAD
-=======
 }
 
 /* ===== SHARED APP CHROME (category / draw / reading) ===== */
@@ -156,7 +154,6 @@ th: 100%; border: 1px solid rgba(201,169,110,.35); border-radius: 2px; padding: 
 
 @media (max-width: 640px) {
   .nav-menu { padding: 100px 28px 36px; }
->>>>>>> origin/main
 }
 
 /* ===== CATEGORY PAGE ===== */
