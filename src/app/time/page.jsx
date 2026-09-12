@@ -49,7 +49,7 @@ export default function ReadingPeriodPage() {
             <button
               type="button"
               className="reading-period-btn"
-              onClick={() => router.push("/draw")}
+              onClick={() => router.push(`/draw?period=${period.key}`)}
             >
               Start reading
             </button>
