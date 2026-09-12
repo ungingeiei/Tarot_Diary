@@ -366,8 +366,8 @@ a { color: inherit; }
 .diary-entry-name-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .diary-entry-name { margin: 0; font-family: var(--display); font-weight: 300; font-size: 19px; letter-spacing: .04em; text-transform: uppercase; color: var(--cream); }
 .diary-entry-date { flex-shrink: 0; color: var(--muted); font-size: 12px; letter-spacing: .04em; }
-.diary-text { margin: 0; color: rgba(232,227,216,.82); font-size: 14.5px; line-height: 1.75; font-weight: 300; font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.diary-text.expanded { -webkit-line-clamp: unset; overflow: visible; }
+.diary-text { margin: 0; color: rgba(232,227,216,.82); font-size: 14.5px; line-height: 1.75; font-weight: 300; font-style: italic; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.diary-text.expanded { -webkit-line-clamp: unset; line-clamp: unset; overflow: visible; }
 .diary-advice { margin: 14px 0 0; padding: 14px 16px; border-left: 2px solid var(--accent, var(--gold)); background: rgba(201,169,110,.05); border-radius: 2px; }
 .diary-advice h3 { margin: 0 0 6px; font-family: var(--display); font-weight: 400; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
 .diary-advice p { margin: 0; color: rgba(232,227,216,.75); font-size: 13.5px; line-height: 1.65; font-weight: 300; }
