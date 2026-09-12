@@ -50,7 +50,7 @@ export function NavMenu({ onNavigate, onDismiss }) {
       <nav className="nav-menu" aria-label="Main menu">
         {/* Intentionally 404s — there's no /home page yet. Point this
             at the real route once one exists. */}
-        <button type="button" className="nav-menu-btn" onClick={() => go("/home")}>
+        <button type="button" className="nav-menu-btn" onClick={() => go("/")}>
           HOME
         </button>
         {/* TODO: build an /about page — this route doesn't exist yet */}
