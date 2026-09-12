@@ -16,9 +16,6 @@ export default function ReadingPeriodPage() {
     <main className="app-page reading-period-page">
       <AppHeader />
 
-      <section className="reading-period-hero">
-        ...
-      </section>
       {/* Page Title */}
       <section className="reading-period-hero">
         <div className="reading-period-heading">
