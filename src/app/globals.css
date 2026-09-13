@@ -818,3 +818,401 @@ nav a:hover {
   .diary-entry { padding: 22px 20px 44px; }
   .diary-entry-top { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
+
+
+
+
+
+/* =========================================================
+   PROFILE PAGE
+   ========================================================= */
+
+.profile-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(201, 169, 110, 0.06), transparent 25%),
+    radial-gradient(circle at 10% 85%, rgba(48, 76, 58, 0.08), transparent 25%),
+    var(--obsidian);
+  overflow-x: hidden;
+}
+
+
+/* Profile navigation */
+.profile-header {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 0 36px;
+}
+
+.profile-menu-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(217, 160, 53, 0.45);
+  border-radius: 10%;
+  background: transparent;
+  color: #b89529;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.profile-menu-btn svg {
+  width: 30px;
+  height: 30px;
+}
+
+.profile-brand-name {
+  margin: 0 0 8px 180px;
+  color:#b89529;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+}
+
+/* ---------- Heading ---------- */
+.profile-heading {
+  width: 100%;
+  padding: 35px 36px 0;
+}
+
+.profile-logo {
+  margin-left: 90px;
+  margin-bottom: 25px;
+}
+
+.profile-logo svg {
+  width: 180px;
+  height: auto;
+}
+
+.profile-heading h1 {
+  margin: 0 0 28px 180px;
+  font-family:Georgia, 'Times New Roman', Times, serif;
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: #fcefd1;
+}
+
+/* ---------- Gold divider ---------- */
+.profile-divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-divider span:first-child,
+.profile-divider span:last-child {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(201, 169, 110, 0.8),
+    rgba(201, 169, 110, 0.35)
+  );
+}
+
+.profile-divider span:last-child {
+  background: linear-gradient(
+    90deg,
+    rgba(201, 169, 110, 0.35),
+    rgba(201, 169, 110, 0.8)
+  );
+}
+
+/* ---------- Main profile card ---------- */
+.profile-card {
+  width: 1000px;
+  min-height: 400px;
+  margin: 20px auto 5px;
+  display: grid;
+  grid-template-columns: 40% 60%;
+  border: 1px solid rgba(157, 126, 69, 0.9);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22, 22, 31, 0.75),
+      rgba(9, 9, 15, 0.95)
+    );
+  box-shadow:
+    0 0 35px rgba(0, 0, 0, 0.45),
+    inset 0 0 35px rgba(201, 169, 110, 0.025);
+  overflow: hidden;
+}
+
+/* ---------- Left side ---------- */
+.profile-card-art {
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tarot card base */
+.profile-tarot {
+  margin-top: -100px;
+  position: absolute;
+  width: 150px;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: Georgia, serif;
+}
+
+.profile-tarot svg rect,
+.profile-tarot svg path,
+.profile-tarot svg line,
+.profile-tarot svg circle,
+.profile-tarot svg polygon {
+  stroke-width: 1px;
+  opacity: 1;
+}
+
+/* Green card */
+.profile-tarot-green {
+  background: transparent;
+  color: #3d8c3b;
+  border: 1px solid #0a9a08;
+  transform: rotate(-9deg) translate(-30px, -20px);
+  z-index: 1;
+}
+
+/* Purple card */
+.profile-tarot-purple {
+  background: transparent;
+  color: #915aa4;
+  border: 1px solid #915aa4;
+  transform: rotate(8deg) translate(70px, 130px);
+  z-index: 2;
+}
+
+/* ---------- Right side ---------- */
+.profile-info {
+  padding: 50px 60px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.profile-info h2 {
+  margin: 0 0 38px;
+  color: #f9f7f2;
+  font-size: 40px;
+  font-weight: 100;
+  line-height: 1.08;
+  font-family:Georgia, 'Times New Roman', Times, serif;
+}
+
+/* ---------- User details ---------- */
+.profile-detail {
+  display: grid;
+  grid-template-columns: 105px 25px 1fr;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #f9f7f2;
+}
+
+.profile-label {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+
+.profile-separator {
+  color: rgba(201, 169, 110, 0.65);
+  text-align: center;
+}
+
+.profile-value {
+  color: #ddd8cf;
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Edit button ---------- */
+.edit-profile-btn {
+  align-self: flex-start;
+  margin-top: 40px;
+  padding: 10px 20px;
+  border: 2px solid var(--gold);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gold);
+  margin-left: 70px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.edit-profile-btn:hover {
+  background: rgba(201, 169, 110, 0.1);
+}
+
+/* ---------- Edit Profile ---------- */
+
+.profile-edit-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 35px;
+  row-gap: 22px;
+  width: 100%;
+}
+
+.profile-edit-form input {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid rgba(201, 169, 110, 0.55);
+  outline: none;
+  background: transparent;
+  color: var(--cream);
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.profile-edit-form input::placeholder {
+  color: rgba(201, 169, 110, 0.65);
+}
+
+.profile-edit-form input:focus {
+  border-bottom-color: var(--gold);
+}
+
+/* Buttons */
+
+.profile-edit-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.profile-cancel-btn {
+  align-self: flex-start;
+  margin-top: 40px;
+  padding: 10px 20px;
+  border: 2px solid var(--gold);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gold);
+  margin-left: 70px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-cancel-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ---------- Quote divider ---------- */
+.profile-info-divider {
+  width: 100%;
+  height: 1px;
+  margin: -50px 0 24px;
+  background: rgba(201, 169, 110, 0.65);
+}
+
+.profile-quote {
+  margin: 0;
+  color: rgba(232, 227, 216, 0.75);
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+.profile-bottom {
+  grid-column: 1 / -1;
+  padding: 0 30px 35px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 850px) {
+  .profile-heading {
+    padding: 25px 25px 0;
+  }
+
+  .profile-logo {
+    margin-left: 20px;
+  }
+
+  .profile-heading h1 {
+    margin-left: 20px;
+  }
+
+  .profile-card {
+    width: calc(100% - 40px);
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card-art {
+    min-height: 430px;
+  }
+
+  .profile-info {
+    padding: 45px 35px;
+  }
+}
+
+@media (max-width: 500px) {
+  .profile-heading h1 {
+    font-size: 48px;
+  }
+
+  .profile-card-art {
+    min-height: 380px;
+  }
+
+  .profile-tarot {
+    width: 155px;
+    height: 240px;
+  }
+
+  .tarot-symbol {
+    font-size: 65px;
+  }
+
+  .profile-info {
+    padding: 35px 25px;
+  }
+
+  .profile-info h2 {
+    font-size: 42px;
+  }
+
+  .profile-detail {
+    grid-template-columns: 85px 18px 1fr;
+  }
+
+  .profile-value {
+    font-size: 14px;
+  }
+}
