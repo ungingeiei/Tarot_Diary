@@ -1317,7 +1317,6 @@ nav a:hover {
 }
 
 /* ---------- Edit Profile ---------- */
-
 .profile-edit-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1401,6 +1400,60 @@ nav a:hover {
 .profile-bottom {
   grid-column: 1 / -1;
   padding: 0 30px 35px;
+}
+
+
+
+/* =========================================================
+   Admin PAGE
+   ========================================================= */
+.profile-actions-admin {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 40px;
+}
+
+/* EDIT PROFILE */
+.admin-edit-profile-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--gold);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-edit-profile-btn:hover {
+    background: rgba(201, 169, 110, 0.1);
+}
+
+/* CARD MANAGEMENT */
+.admin-card-management-btn {
+    padding: 10px 20px;
+    border: 2px solid #14772f;
+    border-radius: 999px;
+    background: transparent;
+    color: #14772f;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-card-management-btn:hover {
+    background: rgba(20, 119, 47, 0.1);
 }
 
 /* ---------- Responsive ---------- */
