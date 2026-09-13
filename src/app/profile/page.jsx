@@ -160,13 +160,15 @@ export default function ProfilePage() {
                                 </span>
                             </div>
 
-                            <button
-                                type="button"
-                                className="edit-profile-btn"
-                                onClick={() => setIsEditing(true)}
-                            >
-                                EDIT PROFILE
-                            </button>
+                            <div className="profile-actions">
+                                <button
+                                    type="button"
+                                    className="edit-profile-btn"
+                                    onClick={() => setIsEditing(true)}
+                                >
+                                    EDIT PROFILE
+                                </button>
+                            </div>
                         </>
                     )}
 
