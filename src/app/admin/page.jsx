@@ -1,6 +1,6 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { NavMenu } from "../../components/NavMenu";
 import { MenuIcon, CloseXIcon, TarotCard } from "../../components/TarotVisual";
 
@@ -37,6 +37,7 @@ function ProfileHeader() {
 // }
 
 export default function ProfilePage() {
+    const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
     return (
         <main className="app-page profile-page">
@@ -183,7 +184,7 @@ export default function ProfilePage() {
                                 <button
                                     type="button"
                                     className="admin-card-management-btn"
-                                    onClick={() => router.push("/managecard")}
+                                    onClick={() => router.push("/addcard")}
                                 >
                                     CARD MANAGEMENT
                                 </button>
