@@ -27,7 +27,7 @@ export default function ManageCardPage() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [showAddCard, setShowAddCard] = useState(false);
 
-// =====================================CARD DATA อันนี้เป็น UI เฉยๆ =====================================
+    // =====================================CARD DATA อันนี้เป็น UI เฉยๆ =====================================
     const [cards, setCards] = useState([
         {
             id: 1,
@@ -39,20 +39,21 @@ export default function ManageCardPage() {
                 "ความสัมพันธ์และการตัดสินใจที่สอดคล้องกับความรู้สึกของตัวเอง",
         },
     ]);
-// =====================================ADD CARD FORM=====================================
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    // =====================================ADD CARD FORM=====================================
     const [cardType, setCardType] = useState("Category");
     const [cardName, setCardName] = useState("");
     const [category, setCategory] = useState("Love");
     const [prediction, setPrediction] = useState("");
 
-// =====================================EDIT CARD=====================================
+    // =====================================EDIT CARD=====================================
     const [editingCardId, setEditingCardId] = useState(null);
     const [editType, setEditType] = useState("Category");
     const [editName, setEditName] = useState("");
     const [editCategory, setEditCategory] = useState("Love");
     const [editPrediction, setEditPrediction] = useState("");
 
-// =====================================OPEN ADD CARD=====================================
+    // =====================================OPEN ADD CARD=====================================
     const handleOpenAddCard = () => {
         setCardType("Category");
         setCardName("");
@@ -60,7 +61,7 @@ export default function ManageCardPage() {
         setPrediction("");
         setShowAddCard(true);
     };
-// =====================================CANCEL ADD CARD=====================================
+    // =====================================CANCEL ADD CARD=====================================
     const handleCancel = () => {
         setCardType("Category");
         setCardName("");
@@ -69,7 +70,7 @@ export default function ManageCardPage() {
         setShowAddCard(false);
     };
 
-// =====================================SAVE NEW CARD=====================================
+    // =====================================SAVE NEW CARD=====================================
 
     const handleSaveCard = (event) => {
         event.preventDefault();
@@ -99,7 +100,7 @@ export default function ManageCardPage() {
         handleCancel();
     };
 
-// =====================================START EDIT=====================================
+    // =====================================START EDIT=====================================
     const handleEditCard = (card) => {
         setEditingCardId(card.id);
 
@@ -109,7 +110,7 @@ export default function ManageCardPage() {
         setEditPrediction(card.prediction || "");
     };
 
-// =====================================CANCEL EDIT=====================================
+    // =====================================CANCEL EDIT=====================================
     const handleCancelEdit = () => {
         setEditingCardId(null);
         setEditType("Category");
@@ -118,7 +119,7 @@ export default function ManageCardPage() {
         setEditPrediction("");
     };
 
-// =====================================SAVE EDIT=====================================
+    // =====================================SAVE EDIT=====================================
     const handleSaveEdit = (event, id) => {
         event.preventDefault();
         if (!editName.trim() || !editPrediction.trim()) {
@@ -149,7 +150,7 @@ export default function ManageCardPage() {
         );
         handleCancelEdit();
     };
-// =====================================DELETE CARD=====================================
+    // =====================================DELETE CARD=====================================
 
     const handleDeleteCard = (id) => {
         setCards((currentCards) =>
@@ -248,7 +249,7 @@ export default function ManageCardPage() {
                                 <tr
                                     key={card.id}
                                 >
-                                {/* CARD NAME */}
+                                    {/* CARD NAME */}
                                     <td>
                                         {isEditing ? (
                                             <input
@@ -337,7 +338,7 @@ export default function ManageCardPage() {
 
                                     <td>
                                         {card.type ===
-                                        "Category" ? (
+                                            "Category" ? (
                                             isEditing ? (
                                                 <select
                                                     value={
@@ -464,11 +465,7 @@ export default function ManageCardPage() {
                                                         type="button"
                                                         className="delete-card-btn"
                                                         aria-label="Delete card"
-                                                        onClick={() =>
-                                                            handleDeleteCard(
-                                                                card.id
-                                                            )
-                                                        }
+                                                        onClick={() => setDeleteTarget(card)}
                                                     >
                                                         🗑
                                                     </button>
@@ -482,7 +479,7 @@ export default function ManageCardPage() {
                     </tbody>
                 </table>
             </section>
- {/* =====================================ADD CARD SIDE PANEL===================================== */}
+            {/* =====================================ADD CARD SIDE PANEL===================================== */}
             {showAddCard && (
                 <div className="add-card-overlay">
                     <aside className="add-card-panel">
@@ -548,47 +545,47 @@ export default function ManageCardPage() {
                             {/* CATEGORY */}
                             {cardType ===
                                 "Category" && (
-                                <>
-                                    <label>
-                                        CATEGORY
-                                    </label>
+                                    <>
+                                        <label>
+                                            CATEGORY
+                                        </label>
 
-                                    <select
-                                        value={
-                                            category
-                                        }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            setCategory(
+                                        <select
+                                            value={
+                                                category
+                                            }
+                                            onChange={(
                                                 event
-                                                    .target
-                                                    .value
-                                            )
-                                        }
-                                    >
-                                        {CATEGORIES.map(
-                                            (
-                                                item
-                                            ) => (
-                                                <option
-                                                    key={
-                                                        item
-                                                    }
-                                                    value={
-                                                        item
-                                                    }
-                                                >
-                                                    {
-                                                        item
-                                                    }
-                                                </option>
-                                            )
-                                        )}
+                                            ) =>
+                                                setCategory(
+                                                    event
+                                                        .target
+                                                        .value
+                                                )
+                                            }
+                                        >
+                                            {CATEGORIES.map(
+                                                (
+                                                    item
+                                                ) => (
+                                                    <option
+                                                        key={
+                                                            item
+                                                        }
+                                                        value={
+                                                            item
+                                                        }
+                                                    >
+                                                        {
+                                                            item
+                                                        }
+                                                    </option>
+                                                )
+                                            )}
 
-                                    </select>
-                                </>
-                            )}
+                                        </select>
+                                    </>
+                                )}
                             {/* PREDICTION */}
                             <label>
                                 PREDICTION
@@ -629,6 +626,42 @@ export default function ManageCardPage() {
                             </div>
                         </form>
                     </aside>
+                </div>
+            )}
+{/* ///อันนี้ป้อปอัพลบ */}
+            {deleteTarget && (
+                <div className="delete-modal-overlay">
+                    <div className="delete-modal">
+                        <h2>Delete Card</h2>
+
+                        <p>Are you sure you want to delete?</p>
+
+                        <p className="delete-warning">
+                            All linked predictions will also be deleted.
+                            This action cannot be undone.
+                        </p>
+
+                        <div className="delete-modal-actions">
+                            <button
+                                type="button"
+                                className="delete-confirm-btn"
+                                onClick={() => {
+                                    handleDeleteCard(deleteTarget.id);
+                                    setDeleteTarget(null);
+                                }}
+                            >
+                                DELETE
+                            </button>
+
+                            <button
+                                type="button"
+                                className="delete-cancel-btn"
+                                onClick={() => setDeleteTarget(null)}
+                            >
+                                CANCEL
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </main>
