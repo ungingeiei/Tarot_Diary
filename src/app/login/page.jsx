@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthField } from "../../components/AuthField";
+import CheckInReward from "../../components/CheckInReward";
 import { BrandMark, TarotCard } from "../../components/TarotVisual";
 import { signIn } from "../../lib/auth";
 
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showReward, setShowReward] = useState(false);
 
   // ---------------------------------------------------------------------
   // LOGIN SUBMIT — TWO VERSIONS BELOW. Exactly ONE should be active
@@ -34,7 +36,7 @@ export default function LoginPage() {
   //   window.setTimeout(() => {
   //     setLoading(false);
   //     signIn({ name: email.split("@")[0] || "Seeker", email });
-  //     router.push("/category");
+  //     setShowReward(true);
   //   }, 1200);
   // };
 
@@ -62,7 +64,7 @@ export default function LoginPage() {
       }
       const user = await res.json(); // expect e.g. { name, email }
       signIn({ name: user.name || email.split("@")[0] || "Seeker", email });
-      router.push("/category");
+      setShowReward(true);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -118,6 +120,11 @@ export default function LoginPage() {
         </div>
         <Footer />
       </section>
+       {showReward && (
+        <CheckInReward
+          onCollect={() => router.push("/")}
+        />
+      )}
     </main>
   );
 }
