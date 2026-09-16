@@ -101,7 +101,7 @@ export default function DiaryPage() {
         <p className="diary-eyebrow">Tarot Diary</p>
         <div className="diary-heading-row">
           <h1>My Diary</h1>
-          <button type="button" className="diary-close-btn" onClick={() => router.push("/category")}>
+          <button type="button" className="diary-close-btn" onClick={() => router.push("/time")}>
             Close
           </button>
         </div>
