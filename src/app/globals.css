@@ -156,6 +156,420 @@ a { color: inherit; }
   .nav-menu { padding: 100px 28px 36px; }
 }
 
+
+/* =========================Time Selection Page========================= */
+.reading-period-page {
+  min-height: 100vh;
+  background: #0b0712;
+  color: #f5e6b3;
+}
+
+/* Time Selection - Hero */
+.reading-period-heading {
+  display: flex;
+  justify-content: center;
+  transform: translateX(-150px);
+}
+
+.reading-period-title {
+  margin: 0;
+  color: #b49326;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  font-family: 'Georgia', Times, serif;
+}
+
+.title-choose {
+  display: block;
+  margin-left: -150px;
+}
+
+.title-period {
+  display: block;
+  margin-left: 10px;
+  font-size: 56px;
+}
+
+.reading-period-subtitle {
+  display: block;
+  margin-top: 18px;
+  color: #d8d0c4;
+  font-size: 25px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+.category-divider svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.category-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.category-divider span {
+  width: 100px;
+  height: 1px;
+  background: #d4af37;
+}
+
+.reading-period-image {
+  width: 2000px;
+  height: 2000px;
+  object-fit: contain;
+}
+
+/* Time Selection - Cards */
+.reading-period-grid {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  gap: 2px;
+}
+
+.reading-period-item {
+  text-align: center;
+}
+
+.reading-period-image {
+  width: 100%;
+  height: 450px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Header icons */
+.app-header {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 34px 56px;
+  background: linear-gradient(
+    180deg,
+    rgba(9, 9, 15, 0.92) 0%,
+    rgba(9, 9, 15, 0.55) 80%,
+    transparent 100%
+  );
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+
+.icon-button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(201, 169, 110, 0.35);
+  border-radius: 6px;
+  background: transparent;
+  color: #c9a96e;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.icon-button:hover {
+  border-color: #c9a96e;
+  background: rgba(201, 169, 110, 0.06);
+}
+
+.icon-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+.credits-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+  border-radius: 999px;
+  padding: 5px 20px 5px 5px;
+  background: rgba(17, 17, 25, 0.55);
+  color: #e8e3d8;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.credits-pill .coin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    #f0d9a0,
+    #c9a355
+  );
+  display: grid;
+  place-items: center;
+  color: #5b3d12;
+  flex-shrink: 0;
+}
+
+.credits-pill .coin svg {
+  width: 24px;
+  height: 24px;
+}
+
+
+.app-header .brand-mark {
+  width: 120px;
+  height: auto;
+}
+
+.app-header .icon-button svg {
+  width: 24px;
+  height: 24px;
+}
+.credits-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #f5e6b3;
+  font-size: 18px;
+}
+
+.coin {
+  display: flex;
+  align-items: center;
+}
+
+.app-header .coin svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Time Selection - Start Reading Button */
+
+.reading-period-btn {
+  margin-top: -150px;
+  width: 180px;
+  height: 44px;
+  border-radius: 1px;
+  background: #fbe18c;
+  color: #0b0712;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+
+.choose-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  transform: translateX(-150px);
+}
+
+.title-choose {
+  color: #b49326;
+  font-size: 56px;
+  font-weight: 700;
+}
+
+.choose-line img {
+  width: 180px;
+  height: auto;
+}
+
+/* =========================MOBILE / TABLET========================= */
+@media (max-width: 900px) {
+  .app-header {
+    padding: 26px 28px;
+  }
+}
+
+/* ===== NAV MENU ===== */
+
+.nav-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  background: rgba(5, 5, 9, 0.6);
+  backdrop-filter: blur(1px);
+}
+
+.nav-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  width: min(430px, 84vw);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 16, 23, 0.98),
+    rgba(9, 9, 15, 0.99)
+  );
+  border-right: 1px solid rgba(201, 169, 110, 0.3);
+  box-shadow: 40px 0 70px rgba(0, 0, 0, 0.4);
+  padding: 130px 44px 48px;
+  overflow-y: auto;
+}
+
+.nav-menu-btn {
+  width: 100%;
+  flex-shrink: 0;
+  border: 1px solid rgba(201, 169, 110, 0.45);
+  border-radius: 999px;
+  background: transparent;
+  color: #e8e3d8;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.nav-menu-btn:hover {
+  background: rgba(201, 169, 110, 0.08);
+  border-color: #c9a96e;
+}
+
+.nav-menu-logout {
+  margin-top: auto;
+  border-color: rgba(255, 80, 83, 0.5);
+  background: rgba(120, 20, 22, 0.35);
+  color: #ffb3b4;
+}
+
+.nav-menu-logout:hover {
+  background: rgba(255, 80, 83, 0.12);
+  border-color: #ff5053;
+}
+
+@media (max-width: 640px) {
+  .nav-menu {
+    padding: 100px 28px 36px;
+  }
+}
+
+
+/* ===== Home ===== */
+
+.Middle {
+  text-align: center;
+  padding-top: 80px;
+}
+
+.Middle h1 {
+  font-family: "Oranienbaum", serif;
+  font-size: 72px;
+  font-weight: 400;
+  letter-spacing: 8px;
+  color: #c9a45c;
+  margin: 0 0 10px;
+}
+
+.Middle p {
+  font-size: 16px;
+  color: #bdbdbd;
+  margin: 0 0 40px;
+  letter-spacing: 3px;
+}
+
+.Middle a {
+  display: inline-block;
+  padding: 14px 35px;
+  border-radius: 10px;
+  background: #c9a45c;
+  color: #151515;
+  text-decoration: none;
+  font-size: 15px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Welcome line */
+.welcome-line {
+  display: block;
+  width: 300px;
+  height: auto;
+  margin: 0 auto;
+}
+
+/* Tarot Cards */
+.tarot-image-center {
+  position: relative;
+  width: 1000px;
+  height: 400px;
+  margin: -5px auto 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gold-circle {
+  position: absolute;
+  width: 1200px;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tarot-cards {
+  position: absolute;
+  width: 450px;
+  height: auto;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ===== Home Navbar ===== */
+
+nav {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 50px;
+}
+
+nav img {
+  width: 170px;
+  height: auto;
+}
+
+nav div {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #fcfcfb;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+nav a:hover {
+  color: #b89445;
+}
+
 /* ===== CATEGORY PAGE ===== */
 .category-page { display: flex; flex-direction: column; }
 .category-glow { position: absolute; z-index: 0; width: 560px; height: 560px; left: 58%; top: 62%; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(96,64,150,.24), transparent 70%); filter: blur(40px); pointer-events: none; }
@@ -403,4 +817,1747 @@ a { color: inherit; }
   .category-btn { width: 100%; flex-direction: row; justify-content: flex-start; padding: 18px 20px; }
   .diary-entry { padding: 22px 20px 44px; }
   .diary-entry-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+
+
+
+
+/* =========================================================
+   PROFILE PAGE
+   ========================================================= */
+
+.profile-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(201, 169, 110, 0.06), transparent 25%),
+    radial-gradient(circle at 10% 85%, rgba(48, 76, 58, 0.08), transparent 25%),
+    var(--obsidian);
+  overflow-x: hidden;
+}
+
+
+/* Profile navigation */
+.profile-header {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  padding: 0 36px;
+}
+
+.profile-menu-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(217, 160, 53, 0.45);
+  border-radius: 10%;
+  background: transparent;
+  color: #b89529;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.profile-menu-btn svg {
+  width: 30px;
+  height: 30px;
+}
+
+.profile-brand-name {
+  margin: 0 0 8px 180px;
+  color:#b89529;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+}
+
+/* ---------- Heading ---------- */
+.profile-heading {
+  width: 100%;
+  padding: 35px 36px 0;
+}
+
+.profile-logo {
+  margin-left: 90px;
+  margin-bottom: 25px;
+}
+
+.profile-logo svg {
+  width: 180px;
+  height: auto;
+}
+
+.profile-heading h1 {
+  margin: 0 0 28px 180px;
+  font-family:Georgia, 'Times New Roman', Times, serif;
+  font-size: 40px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: #fcefd1;
+}
+
+/* ---------- Gold divider ---------- */
+.profile-divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-divider span:first-child,
+.profile-divider span:last-child {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(201, 169, 110, 0.8),
+    rgba(201, 169, 110, 0.35)
+  );
+}
+
+.profile-divider span:last-child {
+  background: linear-gradient(
+    90deg,
+    rgba(201, 169, 110, 0.35),
+    rgba(201, 169, 110, 0.8)
+  );
+}
+
+/* ---------- Main profile card ---------- */
+.profile-card {
+  width: 1000px;
+  min-height: 400px;
+  margin: 20px auto 5px;
+  display: grid;
+  grid-template-columns: 40% 60%;
+  border: 1px solid rgba(157, 126, 69, 0.9);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22, 22, 31, 0.75),
+      rgba(9, 9, 15, 0.95)
+    );
+  box-shadow:
+    0 0 35px rgba(0, 0, 0, 0.45),
+    inset 0 0 35px rgba(201, 169, 110, 0.025);
+  overflow: hidden;
+}
+
+/* ---------- Left side ---------- */
+.profile-card-art {
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tarot card base */
+.profile-tarot {
+  margin-top: -100px;
+  position: absolute;
+  width: 150px;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: Georgia, serif;
+}
+
+.profile-tarot svg rect,
+.profile-tarot svg path,
+.profile-tarot svg line,
+.profile-tarot svg circle,
+.profile-tarot svg polygon {
+  stroke-width: 1px;
+  opacity: 1;
+}
+
+/* Green card */
+.profile-tarot-green {
+  background: transparent;
+  color: #3d8c3b;
+  border: 1px solid #0a9a08;
+  transform: rotate(-9deg) translate(-30px, -20px);
+  z-index: 1;
+}
+
+/* Purple card */
+.profile-tarot-purple {
+  background: transparent;
+  color: #915aa4;
+  border: 1px solid #915aa4;
+  transform: rotate(8deg) translate(70px, 130px);
+  z-index: 2;
+}
+
+/* ---------- Right side ---------- */
+.profile-info {
+  padding: 50px 60px 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.profile-info h2 {
+  margin: 0 0 38px;
+  color: #f9f7f2;
+  font-size: 40px;
+  font-weight: 100;
+  line-height: 1.08;
+  font-family:Georgia, 'Times New Roman', Times, serif;
+}
+
+/* ---------- User details ---------- */
+.profile-detail {
+  display: grid;
+  grid-template-columns: 105px 25px 1fr;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #f9f7f2;
+}
+
+.profile-label {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+
+.profile-separator {
+  color: rgba(201, 169, 110, 0.65);
+  text-align: center;
+}
+
+.profile-value {
+  color: #ddd8cf;
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Edit button ---------- */
+.edit-profile-btn {
+  align-self: flex-start;
+  margin-top: 40px;
+  padding: 10px 20px;
+  border: 2px solid var(--gold);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gold);
+  margin-left: 70px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.edit-profile-btn:hover {
+  background: rgba(201, 169, 110, 0.1);
+}
+
+/* ---------- Edit Profile ---------- */
+.profile-edit-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 35px;
+  row-gap: 22px;
+  width: 100%;
+}
+
+.profile-edit-form input {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid rgba(201, 169, 110, 0.55);
+  outline: none;
+  background: transparent;
+  color: var(--cream);
+  font-family: inherit;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.profile-edit-form input::placeholder {
+  color: rgba(201, 169, 110, 0.65);
+}
+
+.profile-edit-form input:focus {
+  border-bottom-color: var(--gold);
+}
+
+/* Buttons */
+
+.profile-edit-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.profile-cancel-btn {
+  align-self: flex-start;
+  margin-top: 40px;
+  padding: 10px 20px;
+  border: 2px solid var(--gold);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--gold);
+  margin-left: 70px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profile-cancel-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* ---------- Quote divider ---------- */
+.profile-info-divider {
+  width: 100%;
+  height: 1px;
+  margin: -50px 0 24px;
+  background: rgba(201, 169, 110, 0.65);
+}
+
+.profile-quote {
+  margin: 0;
+  color: rgba(232, 227, 216, 0.75);
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.7;
+  letter-spacing: 0.3px;
+  text-align: center;
+}
+
+.profile-bottom {
+  grid-column: 1 / -1;
+  padding: 0 30px 35px;
+}
+
+
+
+/* =========================================================
+   Admin PAGE
+   ========================================================= */
+.profile-actions-admin {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 40px;
+}
+
+/* EDIT PROFILE */
+.admin-edit-profile-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--gold);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-edit-profile-btn:hover {
+    background: rgba(201, 169, 110, 0.1);
+}
+
+/* CARD MANAGEMENT */
+.admin-card-management-btn {
+    padding: 10px 20px;
+    border: 2px solid #14772f;
+    border-radius: 999px;
+    background: transparent;
+    color: #14772f;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.admin-card-management-btn:hover {
+    background: rgba(20, 119, 47, 0.1);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 850px) {
+  .profile-heading {
+    padding: 25px 25px 0;
+  }
+
+  .profile-logo {
+    margin-left: 20px;
+  }
+
+  .profile-heading h1 {
+    margin-left: 20px;
+  }
+
+  .profile-card {
+    width: calc(100% - 40px);
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card-art {
+    min-height: 430px;
+  }
+
+  .profile-info {
+    padding: 45px 35px;
+  }
+}
+
+@media (max-width: 500px) {
+  .profile-heading h1 {
+    font-size: 48px;
+  }
+
+  .profile-card-art {
+    min-height: 380px;
+  }
+
+  .profile-tarot {
+    width: 155px;
+    height: 240px;
+  }
+
+  .tarot-symbol {
+    font-size: 65px;
+  }
+
+  .profile-info {
+    padding: 35px 25px;
+  }
+
+  .profile-info h2 {
+    font-size: 42px;
+  }
+
+  .profile-detail {
+    grid-template-columns: 85px 18px 1fr;
+  }
+
+  .profile-value {
+    font-size: 14px;
+  }
+}
+
+
+
+/* =========================================================
+MANAGE CARD PAGE
+========================================================= */
+.manage-card-page {
+    min-height: 100vh;
+    background:
+        radial-gradient(
+            circle at 85% 15%,
+            rgba(201, 169, 110, 0.06),
+            transparent 25%
+        ),
+        var(--obsidian);
+    color: var(--cream);
+}
+
+
+/* =========================================================HEADER========================================================= */
+.manage-card-header {
+    position: relative;
+    min-height: 145px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px 55px 0;
+    box-sizing: border-box;
+}
+
+.manage-card-menu-btn {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(201, 169, 110, 0.45);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--gold);
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.manage-card-menu-btn:hover {
+    background: rgba(201, 169, 110, 0.08);
+    border-color: var(--gold);
+}
+
+
+/* ---------- Brand ---------- */
+.manage-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-left: 0;
+}
+
+.manage-card-brand {
+    display: inline-block;
+    color: #85660b;
+    font-family: Georgia, serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    margin-left: 70px;
+}
+
+.admin-console {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 18px;
+    border: 1px solid #915aa4;
+    border-radius: 30px;
+    background: rgba(107, 30, 135, 0.1);
+    color: #b978d1;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    box-shadow: 0 0 18px rgba(107, 30, 135, 0.05);
+    margin-left: 12px;
+}
+
+
+/* ===============================DIVIDER============================================ */
+
+.manage-card-divider {
+    width: calc(100% - 110px);
+    height: 1px;
+    margin: 0 auto;
+    background: rgba(145, 111, 17, 0.55);
+}
+
+/* ==============================PAGE HEADING====================================== */
+.manage-card-heading {
+    width: calc(100% - 180px);
+    margin: 70px auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.manage-card-heading h1 {
+    margin: 0;
+    color: var(--cream);
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 35px;
+    font-weight: 400;
+    letter-spacing: 1px;
+}
+
+/* ---------- Add Card Button ---------- */
+.add-card-btn {
+    padding: 12px 24px;
+    border: 1px solid var(--gold);
+    background: var(--gold);
+    color: #111;
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.add-card-btn:hover {
+    box-shadow: 0 0 20px rgba(201, 169, 110, 0.2);
+    transform: translateY(-1px);
+}
+
+
+/* =================================TABLE===================================== */
+.manage-card-table-wrapper {
+    width: calc(100% - 180px);
+    margin: 0 auto 80px;
+    border: 1px solid rgba(201, 169, 110, 0.45);
+    background: rgba(10, 10, 16, 0.78);
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        inset 0 0 30px rgba(201, 169, 110, 0.015);
+}
+
+.manage-card-table {
+.manage-card-table th:nth-child(1),
+.manage-card-table td:nth-child(1) {
+    width: 30%;
+}
+
+.manage-card-table th:nth-child(2),
+.manage-card-table td:nth-child(2) {
+    width: 13%;
+}
+
+.manage-card-table th:nth-child(3),
+.manage-card-table td:nth-child(3) {
+    width: 13%;
+}
+
+.manage-card-table th:nth-child(4),
+.manage-card-table td:nth-child(4) {
+    width: 34%;
+}
+
+.manage-card-table th:nth-child(5),
+.manage-card-table td:nth-child(5) {
+    width: 10%;
+}
+}
+
+
+/* ---------- Table Header ---------- */
+.manage-card-table th {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.4);
+    color: #777978;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.manage-card-table td {
+    padding: 24px 20px;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.16);
+    color: #ddd8cf;
+    font-size: 15px;
+    line-height: 1.7;
+    vertical-align: middle;
+}
+
+
+/* =================================TABLE==================================== */
+.manage-card-table-wrapper {
+    width: calc(100% - 180px);
+    margin: 0 auto 80px;
+    border: 1px solid rgba(201, 169, 110, 0.45);
+    background: rgba(10, 10, 16, 0.78);
+    overflow-x: auto;
+    overflow-y: hidden;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.25),
+        inset 0 0 30px rgba(201, 169, 110, 0.015);
+}
+
+.manage-card-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+/* ---------- Column Width ---------- */
+.manage-card-table th:nth-child(1),
+.manage-card-table td:nth-child(1) {
+    width: 30%;
+}
+
+.manage-card-table th:nth-child(2),
+.manage-card-table td:nth-child(2) {
+    width: 13%;
+}
+
+.manage-card-table th:nth-child(3),
+.manage-card-table td:nth-child(3) {
+    width: 13%;
+}
+
+.manage-card-table th:nth-child(4),
+.manage-card-table td:nth-child(4) {
+    width: 34%;
+    text-align: left;
+}
+
+.manage-card-table th:nth-child(5),
+.manage-card-table td:nth-child(5) {
+    width: 10%;
+    text-align: center;
+}
+
+/* ===================================CARD NAME========================================== */
+.manage-card-name {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 220px;
+}
+
+.manage-card-name > span {
+    color: var(--cream);
+    font-family: var(--display);
+    font-size: 20px;
+    line-height: 1.3;
+}
+
+
+/* ===============================TAROT CARD========================================== */
+.manage-tarot-card {
+    width: 70px;
+    height: 100px;
+    flex-shrink: 0;
+    color: #199892;
+    background: transparent;
+    border: 1px solid #199892;
+    font-family: Georgia, serif;
+    box-shadow: 0 0 15px rgba(25, 152, 146, 0.04);
+}
+
+/* ===============================CATEGORY========================================= */
+.manage-card-category {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 13px;
+    border: 1px solid rgba(145, 90, 164, 0.65);
+    border-radius: 20px;
+    background: rgba(107, 30, 135, 0.08);
+    color: #b978d1;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+}
+
+/* =================================PREDICTIONS====================================== */
+.manage-predictions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 620px;
+}
+
+.manage-prediction-item {
+    display: grid;
+    grid-template-columns: 75px 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+.manage-prediction-label {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding-top: 2px;
+}
+
+.manage-prediction-text {
+    color: #c9c4ba;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+
+/* ==========================================ACTION========================================== */
+.card-action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+.edit-card-btn,
+.delete-card-btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 19px;
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.edit-card-btn {
+    color: var(--gold);
+}
+
+.edit-card-btn:hover {
+    background: rgba(201, 169, 110, 0.08);
+    border-color: rgba(201, 169, 110, 0.3);
+    transform: translateY(-1px);
+}
+
+.delete-card-btn {
+    color: #c94a4a;
+}
+
+.delete-card-btn:hover {
+    background: rgba(201, 74, 74, 0.08);
+    border-color: rgba(201, 74, 74, 0.3);
+    transform: translateY(-1px);
+}
+
+/* =========================================================
+   EDIT MODE
+   ========================================================= */
+
+.manage-card-edit-row td {
+    padding: 0;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.25);
+}
+
+.manage-card-edit-panel {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 30px 34px 32px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(25, 25, 34, 0.98),
+            rgba(10, 10, 16, 0.98)
+        );
+    border-top: 1px solid rgba(201, 169, 110, 0.22);
+    border-bottom: 1px solid rgba(201, 169, 110, 0.22);
+    box-shadow:
+        inset 0 0 35px rgba(201, 169, 110, 0.025);
+}
+
+/* ---------- Edit Header ---------- */
+
+.manage-card-edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 26px;
+}
+
+.manage-card-edit-header span {
+    color: #777978;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 2px;
+}
+
+.manage-card-edit-header h3 {
+    margin: 0;
+    color: var(--cream);
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+/* ---------- Edit Form ---------- */
+
+.manage-card-edit-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 26px;
+}
+
+.manage-card-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.manage-card-edit-field.full {
+    grid-column: 1 / -1;
+}
+
+.manage-card-edit-field label {
+    color: #777978;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.8px;
+}
+
+/* Edit fields inside Tarot Card table */
+.manage-card-table tbody input,
+.manage-card-table tbody select,
+.manage-card-table tbody textarea {
+    background: #0b0b10;
+    padding:15px 20px;
+    color: #f4ead8;
+    border: 1px solid rgba(201, 169, 110, 0.45);
+    border-radius: 6px;
+}
+
+.manage-card-table tbody input:focus,
+.manage-card-table tbody select:focus,
+.manage-card-table tbody textarea:focus {
+    background: #0b0b10 ;
+    color: #f4ead8;
+    border-color: var(--gold);
+    outline: none;
+}
+
+.manage-card-table tbody select option {
+    background: #0b0b10;
+    color: #f4ead8;
+}
+
+
+/* ---------- Input / Select / Textarea ---------- */
+
+.manage-card-edit-input,
+.manage-card-edit-select,
+.manage-card-edit-textarea {
+background: #0b0b10 !important;
+color: #f4ead8 !important;
+border-color: var(--gold);
+outline: none;
+box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
+}
+
+.manage-card-edit-input,
+.manage-card-edit-select {
+    height: 44px;
+    padding: 0 13px;
+}
+
+.manage-card-edit-textarea {
+    min-height: 72px;
+    height: 72px;
+    padding: 11px 13px;
+    resize: none;
+    line-height: 1.55;
+}
+
+.manage-card-edit-input::placeholder,
+.manage-card-edit-textarea::placeholder {
+    color: rgba(232, 227, 216, 0.3);
+}
+
+.manage-card-edit-input:focus,
+.manage-card-edit-select:focus,
+.manage-card-edit-textarea:focus {
+    border-color: var(--gold);
+    background: rgba(201, 169, 110, 0.025);
+    box-shadow:
+        0 0 15px rgba(201, 169, 110, 0.08);
+}
+
+.manage-card-edit-select {
+    cursor: pointer;
+}
+
+.manage-card-edit-select option {
+    background: #111118;
+    color: var(--cream);
+}
+
+/* ---------- Edit Buttons ---------- */
+
+.manage-card-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(145, 111, 17, 0.45);
+}
+
+.save-edit-btn,
+.cancel-edit-btn {
+    min-width: 105px;
+    padding: 11px 20px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.save-edit-btn {
+    border: 1px solid var(--gold);
+    background: var(--gold);
+    color: #111;
+}
+
+.save-edit-btn:hover {
+    box-shadow: 0 0 18px rgba(201, 169, 110, 0.2);
+    transform: translateY(-1px);
+}
+
+.cancel-edit-btn {
+    border: 1px solid rgba(201, 169, 110, 0.55);
+    background: transparent;
+    color: var(--gold);
+}
+
+.cancel-edit-btn:hover {
+    background: rgba(201, 169, 110, 0.08);
+    transform: translateY(-1px);
+}
+
+/* =========================================================
+   ADD CARD SIDE PANEL
+   ========================================================= */
+
+.add-card-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(0, 0, 0, 0.52);
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.add-card-panel {
+    width: min(520px, 48vw);
+    height: 100vh;
+
+    box-sizing: border-box;
+
+    padding: 48px 48px 40px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #171720,
+            #09090f
+        );
+
+    border-left: 1px solid rgba(201, 169, 110, 0.45);
+
+    box-shadow:
+        -15px 0 45px rgba(0, 0, 0, 0.5);
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* =========================================================PANEL HEADER========================================================= */
+
+.add-card-panel-header p {
+    margin: 0 0 26px;
+    color: #4f4f50;
+    font-family: Georgia, serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.add-card-panel-header h2 {
+    margin: 0;
+    color: var(--cream);
+    font-family: Georgia, serif;
+    font-size: 35px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+
+/* ---------- Panel Divider ---------- */
+
+.add-card-panel-divider {
+    width: calc(100% + 96px);
+    height: 1px;
+    margin: 30px -48px 38px;
+    background: rgba(145, 111, 17, 0.65);
+}
+
+
+/* =========================================================ADD CARD FORM========================================================= */
+
+.add-card-form {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1;
+    min-height: 0;
+}
+
+.add-card-form label {
+    margin-bottom: 10px;
+
+    color: #7a7a77;
+
+    font-size: 11px;
+    font-weight: 500;
+
+    letter-spacing: 2px;
+}
+
+
+/* ---------- Input / Textarea / Select ---------- */
+
+.add-card-form input,
+.add-card-form textarea,
+.add-card-form select {
+    width: 100%;
+    box-sizing: border-box;
+
+    margin-bottom: 27px;
+    padding: 13px 14px;
+
+    border: 1px solid rgba(201, 169, 110, 0.65);
+
+    outline: none;
+
+    background: rgba(0, 0, 0, 0.18);
+    color: var(--cream);
+
+    font-family: inherit;
+    font-size: 14px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.add-card-form input,
+.add-card-form select {
+    height: 46px;
+}
+
+.add-card-form textarea {
+    min-height: 72px;
+    height: 72px;
+    resize: none;
+    line-height: 1.55;
+
+}
+
+
+/* ---------- Placeholder ---------- */
+
+.add-card-form input::placeholder,
+.add-card-form textarea::placeholder {
+    color: rgba(232, 227, 216, 0.35);
+}
+
+
+/* ---------- Focus ---------- */
+
+.add-card-form input:focus,
+.add-card-form textarea:focus,
+.add-card-form select:focus {
+    border-color: var(--gold);
+
+    box-shadow:
+        0 0 12px rgba(201, 169, 110, 0.08);
+}
+
+
+/* ---------- Select ---------- */
+
+.add-card-form select {
+    cursor: pointer;
+}
+
+.add-card-form select option {
+    background: #111118;
+    color: var(--cream);
+}
+
+
+/* =========================================================
+   FORM BOTTOM
+   ========================================================= */
+
+.add-card-form-divider {
+    width: 100%;
+    height: 1px;
+    margin-top: auto;
+    margin-bottom: 30px;
+    background: rgba(145, 111, 17, 0.65);
+}
+
+.add-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+
+/* =========================================================
+   SAVE / CANCEL
+   ========================================================= */
+
+.save-card-btn {
+    padding: 12px 24px;
+
+    border: none;
+
+    background: var(--gold);
+    color: #111;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    letter-spacing: 1.5px;
+
+    cursor: pointer;
+
+    transition:
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.save-card-btn:hover {
+    box-shadow: 0 0 18px rgba(201, 169, 110, 0.2);
+    transform: translateY(-1px);
+}
+
+.cancel-card-btn {
+    padding: 11px 24px;
+
+    border: 1px solid var(--gold);
+
+    background: transparent;
+    color: var(--gold);
+
+    font-size: 12px;
+    font-weight: 500;
+
+    letter-spacing: 1.5px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.cancel-card-btn:hover {
+    background: rgba(201, 169, 110, 0.08);
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
+    .manage-card-heading {
+        width: calc(100% - 100px);
+    }
+
+    .manage-card-table-wrapper {
+        width: calc(100% - 100px);
+    }
+
+    .manage-card-divider {
+        width: calc(100% - 70px);
+    }
+
+    .manage-card-header {
+        padding-left: 35px;
+        padding-right: 35px;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .manage-card-header {
+        min-height: 135px;
+        padding: 20px 25px 0;
+    }
+
+    .manage-card-divider {
+        width: calc(100% - 50px);
+    }
+
+    .manage-card-heading {
+        width: calc(100% - 50px);
+
+        margin-top: 50px;
+
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .manage-card-heading h1 {
+        font-size: 28px;
+    }
+
+    .add-card-btn {
+        padding: 10px 16px;
+        font-size: 12px;
+    }
+
+    .manage-card-table-wrapper {
+        width: calc(100% - 50px);
+    }
+
+    .add-card-panel {
+        width: 100%;
+        padding: 36px 28px 30px;
+    }
+
+    .add-card-panel-divider {
+        width: calc(100% + 56px);
+        margin-left: -28px;
+        margin-right: -28px;
+    }
+}
+
+
+@media (max-width: 520px) {
+
+    .manage-card-title-row {
+        gap: 10px;
+    }
+
+    .manage-card-brand {
+        font-size: 12px;
+    }
+
+    .admin-console {
+        padding: 6px 10px;
+        font-size: 10px;
+        letter-spacing: 1.3px;
+    }
+
+    .manage-card-heading {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .add-card-btn {
+        width: 100%;
+    }
+
+    .add-card-actions {
+        width: 100%;
+    }
+
+    .save-card-btn,
+    .cancel-card-btn {
+        flex: 1;
+        text-align: center;
+    }
+}
+
+
+/* About page */
+.about-page {
+  min-height: 100vh;
+  background: #151515;
+}
+
+/* About top */
+.about-top {
+  min-height: 650px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 70px 20%;
+}
+
+.about-content {
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.about-content h1 {
+  font-family: "Fraunces", serif;
+  font-size: 60px;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.about-content h1 span {
+  display: block;
+  align-items: center;
+}
+
+.about-content h1 span:first-child {
+  color: #f5f1e8;
+}
+
+.about-content h1 span:last-child {
+  color: #c9a45c;
+}
+
+.about-line {
+  width: 300px;
+  height: 1px;
+  background: #c9a45c;
+  margin: 40px 50px;
+}
+
+.about-content p {
+  max-width: 450px;
+  color: #bdbdbd;
+  font-size: 20px;
+  line-height: 1.8;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.about-content::before {
+  content: "";
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: rgba(102, 18, 80, 0.35);
+  filter: blur(180px);
+  left: -250px;
+  top: 180px;
+  z-index: -1;
+}
+
+.about-card {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.about-card::before {
+  content: "";
+  position: absolute;
+  width: 700px;
+  height: 600px;
+  border-radius: 50%;
+  background: rgba(140, 90, 255, 0.35);
+  filter: blur(220px);
+  z-index: 1;
+}
+
+.about-card img {
+  width: 350px;
+  transform: rotate(3deg);
+}
+
+.about-description {
+  width: 80%;
+  margin: 0 auto 10px;
+  padding: 20px 50px;
+  border: 1px solid #c9a45c;
+}
+
+.about-description h2 {
+  margin-top: 3px;
+  color: #f4f2ee;
+  font-family: "Oranienbaum", serif;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.about-description p {
+  color: #bdbdbd;
+  font-size: 17px;
+  line-height: 1;
+  margin: 10px 0;
+}
+
+/* Delete Card Modal */
+.delete-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+}
+
+.delete-modal {
+    width: min(500px, calc(100% - 40px));
+    padding: 40px;
+    background: #0b0b10;
+    border: 1px solid rgba(201, 169, 110, 0.65);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.delete-modal h2 {
+    margin: 0 0 20px;
+    color: #f4ead8;
+    font-family: "Oranienbaum", serif;
+    font-size: 32px;
+    font-weight: 400;
+}
+
+.delete-modal p {
+    margin: 0 0 18px;
+    color: #f4ead8;
+    font-size: 16px;
+}
+
+.delete-modal .delete-warning {
+    color: #d65c5c;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.delete-confirm-btn,
+.delete-cancel-btn {
+    min-width: 120px;
+    padding: 11px 24px;
+    font-size: 15px;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.delete-confirm-btn {
+    color: #cc1d1d;
+    background: #452e2e;
+    border: 2px solid #a94343;
+}
+
+.delete-cancel-btn {
+    color: #c9a96e;
+    background: transparent;
+    border: 1px solid #c9a96e;
+}
+
+
+/* =========================
+   Not Enough Coins Popup
+   ========================= */
+
+.not-enough-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+}
+
+.not-enough-modal {
+    width: min(650px, calc(100% - 100px));
+    min-height: 200px;
+    padding: 45px;
+    box-sizing: border-box;
+    background: #0b0b10;
+    border: 2px solid #d9362a;
+    border-radius: 30px;
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.7);
+}
+
+.not-enough-modal h2 {
+    margin: 0;
+    color: #e34637;
+    font-family: "Oranienbaum", serif;
+    font-size: 35px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.not-enough-divider {
+    width: 100%;
+    height: 2px;
+    margin: 25px auto 30px;
+    background: #f4f0e8;
+}
+
+.not-enough-message {
+    text-align: center;
+}
+
+.not-enough-message p {
+    margin: 0;
+    color: #f4f0e8;
+    font-family: "Oranienbaum", serif;
+    font-size: 25px;
+    line-height: 1.5;
+}
+
+.not-enough-message .not-enough-highlight {
+    color: #d8a936;
+    font-size: 25px;
+}
+
+.not-enough-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 190px;
+    margin-top: 50px;
+}
+
+.not-enough-actions button {
+    width: 300px;
+    height: 50px;
+    border-radius: 22px;
+    font-family: "Oranienbaum", serif;
+    font-size: 25px;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.not-enough-cancel {
+    color: #ffffff;
+    background: #a82a1c;
+    border: 1px solid #a82a1c;
+}
+
+.not-enough-get-coins {
+    color: #ffffff;
+    background: #87d9d2;
+    border: 1px solid #87d9d2;
+}
+
+
+
+/* =========================================
+   Forgot Password
+   ========================================= */
+
+.forgot-password-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--obsidian);
+  padding: 24px;
+}
+
+.forgot-password-container {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.forgot-password-container h1 {
+  margin: 0 0 16px;
+  color: var(--gold);
+  font-family: "Oranienbaum", serif;
+  font-size: 60px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.forgot-password-container p {
+  margin: 0 auto 35px;
+  max-width: 700px;
+  color: #72706d;
+  font-family: "Oranienbaum", serif;
+  font-size: 20px;
+  line-height: 1.7;
+}
+
+.forgot-password-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.forgot-password-container input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  outline: none;
+  background: var(--obsidian);
+  color: var(--cream);
+  text-align: center;
+}
+
+.forgot-password-container input::placeholder {
+  color: var(--muted);
+}
+
+.forgot-password-container input:focus {
+  border-color: var(--gold-dark);
+  box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.12);
+}
+
+.send-reset-button {
+  width: 100%;
+  padding: 14px 20px;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  background: var(--gold);
+  color: var(--obsidian);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.send-reset-button:hover {
+  opacity: 0.9;
+}
+
+.send-reset-button:active {
+  transform: translateY(1px);
+}
+
+.back-login-button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 20px;
+  font-size: 15px;
+  border: 1px solid var(--cream);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--cream);
+  cursor: pointer;
+}
+
+.back-login-button:hover {
+  background: var(--cream);
+  color: var(--obsidian);
 }
