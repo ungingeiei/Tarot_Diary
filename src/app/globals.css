@@ -1656,46 +1656,6 @@ MANAGE CARD PAGE
 
 
 /* =================================TABLE===================================== */
-.manage-card-table-wrapper {
-    width: calc(100% - 180px);
-    margin: 0 auto 80px;
-    border: 1px solid rgba(201, 169, 110, 0.45);
-    background: rgba(10, 10, 16, 0.78);
-    overflow-x: auto;
-    overflow-y: hidden;
-    box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.25),
-        inset 0 0 30px rgba(201, 169, 110, 0.015);
-}
-
-.manage-card-table {
-.manage-card-table th:nth-child(1),
-.manage-card-table td:nth-child(1) {
-    width: 30%;
-}
-
-.manage-card-table th:nth-child(2),
-.manage-card-table td:nth-child(2) {
-    width: 13%;
-}
-
-.manage-card-table th:nth-child(3),
-.manage-card-table td:nth-child(3) {
-    width: 13%;
-}
-
-.manage-card-table th:nth-child(4),
-.manage-card-table td:nth-child(4) {
-    width: 34%;
-}
-
-.manage-card-table th:nth-child(5),
-.manage-card-table td:nth-child(5) {
-    width: 10%;
-}
-}
-
-
 /* ---------- Table Header ---------- */
 .manage-card-table th {
     padding: 18px 20px;
@@ -1737,32 +1697,35 @@ MANAGE CARD PAGE
     border-collapse: collapse;
 }
 
-/* ---------- Column Width ---------- */
-.manage-card-table th:nth-child(1),
-.manage-card-table td:nth-child(1) {
-    width: 30%;
-}
-
-.manage-card-table th:nth-child(2),
-.manage-card-table td:nth-child(2) {
-    width: 13%;
-}
-
-.manage-card-table th:nth-child(3),
-.manage-card-table td:nth-child(3) {
-    width: 13%;
-}
-
-.manage-card-table th:nth-child(4),
-.manage-card-table td:nth-child(4) {
-    width: 34%;
-    text-align: left;
-}
-
 .manage-card-table th:nth-child(5),
 .manage-card-table td:nth-child(5) {
     width: 10%;
     text-align: center;
+}
+
+.manage-card-table input,
+.manage-card-table textarea,
+.manage-card-table select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    background: #111;
+    color: var(--cream);
+    border: 1px solid var(--gold);
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.manage-card-table textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.card-action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
 }
 
 /* ===================================CARD NAME========================================== */
@@ -1910,8 +1873,8 @@ MANAGE CARD PAGE
         inset 0 0 35px rgba(201, 169, 110, 0.025);
 }
 
-/* ---------- Edit Header ---------- */
 
+/* ---------- Edit Header ---------- */
 .manage-card-edit-header {
     display: flex;
     align-items: center;
@@ -2101,30 +2064,23 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .add-card-panel {
     width: min(520px, 48vw);
     height: 100vh;
-
     box-sizing: border-box;
-
     padding: 48px 48px 40px;
-
     background:
         linear-gradient(
             145deg,
             #171720,
             #09090f
         );
-
     border-left: 1px solid rgba(201, 169, 110, 0.45);
-
     box-shadow:
         -15px 0 45px rgba(0, 0, 0, 0.5);
-
     display: flex;
     flex-direction: column;
 }
 
 
-/* =========================================================PANEL HEADER========================================================= */
-
+/* ===============================PANEL HEADER==================================== */
 .add-card-panel-header p {
     margin: 0 0 26px;
     color: #4f4f50;
@@ -2144,7 +2100,6 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 
 
 /* ---------- Panel Divider ---------- */
-
 .add-card-panel-divider {
     width: calc(100% + 96px);
     height: 1px;
@@ -2153,49 +2108,38 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 
-/* =========================================================ADD CARD FORM========================================================= */
+/* ==================================ADD CARD FORM==================================== */
 
 .add-card-form {
     display: flex;
     flex-direction: column;
-
     flex: 1;
     min-height: 0;
 }
 
 .add-card-form label {
     margin-bottom: 10px;
-
-    color: #7a7a77;
-
+    color: #ffffff;
     font-size: 11px;
     font-weight: 500;
-
     letter-spacing: 2px;
 }
 
 
 /* ---------- Input / Textarea / Select ---------- */
-
 .add-card-form input,
 .add-card-form textarea,
 .add-card-form select {
     width: 100%;
     box-sizing: border-box;
-
     margin-bottom: 27px;
     padding: 13px 14px;
-
     border: 1px solid rgba(201, 169, 110, 0.65);
-
     outline: none;
-
     background: rgba(0, 0, 0, 0.18);
     color: var(--cream);
-
     font-family: inherit;
     font-size: 14px;
-
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease;
@@ -2211,17 +2155,36 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     height: 72px;
     resize: none;
     line-height: 1.55;
+}
 
+.add-card-row {
+    display: flex;
+    gap: 18px;
+    width: 100%;
+    margin-bottom: 27px;
+}
+
+.add-card-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.add-card-column input,
+.add-card-column select {
+    margin-bottom: 0;
+    cursor: pointer;
+    height: 46px;
+    padding-left: 14px;
+    padding-right: 40px;
 }
 
 
 /* ---------- Placeholder ---------- */
-
 .add-card-form input::placeholder,
 .add-card-form textarea::placeholder {
     color: rgba(232, 227, 216, 0.35);
 }
-
 
 /* ---------- Focus ---------- */
 
@@ -2229,16 +2192,16 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .add-card-form textarea:focus,
 .add-card-form select:focus {
     border-color: var(--gold);
-
     box-shadow:
         0 0 12px rgba(201, 169, 110, 0.08);
 }
 
 
 /* ---------- Select ---------- */
-
 .add-card-form select {
-    cursor: pointer;
+    height: 46px;
+    padding: 0 14px;
+    padding-right: 50px;
 }
 
 .add-card-form select option {
@@ -2250,21 +2213,23 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 /* =========================================================
    FORM BOTTOM
    ========================================================= */
-
 .add-card-form-divider {
     width: 100%;
     height: 1px;
     margin-top: auto;
     margin-bottom: 30px;
-    background: rgba(145, 111, 17, 0.65);
+    background: var(--gold);
 }
-
 .add-card-actions {
     display: flex;
-    align-items: center;
+    width: 100%;
     gap: 14px;
 }
 
+.save-card-btn,
+.cancel-card-btn {
+    flex: 1;
+} 
 
 /* =========================================================
    SAVE / CANCEL
@@ -2272,19 +2237,13 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 
 .save-card-btn {
     padding: 12px 24px;
-
     border: none;
-
     background: var(--gold);
     color: #111;
-
     font-size: 12px;
     font-weight: 600;
-
     letter-spacing: 1.5px;
-
     cursor: pointer;
-
     transition:
         box-shadow 0.2s ease,
         transform 0.2s ease;
@@ -2297,19 +2256,13 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 
 .cancel-card-btn {
     padding: 11px 24px;
-
     border: 1px solid var(--gold);
-
     background: transparent;
     color: var(--gold);
-
     font-size: 12px;
     font-weight: 500;
-
     letter-spacing: 1.5px;
-
     cursor: pointer;
-
     transition:
         background 0.2s ease,
         transform 0.2s ease;
@@ -2318,6 +2271,14 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .cancel-card-btn:hover {
     background: rgba(201, 169, 110, 0.08);
     transform: translateY(-1px);
+}
+
+.add-card-column:first-child {
+    flex: 1.5;
+}
+
+.add-card-column:last-child {
+    flex:1;
 }
 
 

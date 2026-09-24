@@ -8,88 +8,81 @@ import {
     TarotCard,
 } from "../../components/TarotVisual";
 
-const CARD_TYPES = [
-    "Category",
-    "Daily",
-    "Weekly",
-    "Monthly",
-];
-
-const CATEGORIES = [
-    "Love",
-    "Finance",
-    "Career",
-    "Pets",
-    "Health",
-];
 
 export default function ManageCardPage() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [showAddCard, setShowAddCard] = useState(false);
 
-// =====================================CARD DATA อันนี้เป็น UI เฉยๆ =====================================
-    const [cards, setCards] = useState([
-        {
-            id: 1,
-            type: "Category",
-            name: "The Lovers",
-            title: "THE LOVERS",
-            category: "Love",
-            prediction:
-                "ความสัมพันธ์และการตัดสินใจที่สอดคล้องกับความรู้สึกของตัวเอง",
-        },
-    ]);
-// =====================================ADD CARD FORM=====================================
-    const [cardType, setCardType] = useState("Category");
+
+const [cards, setCards] = useState([
+    {
+        id: 1,
+        name: "The Lovers",
+        title: "THE LOVERS",
+        category: "Love",
+        prediction:
+            "ความสัมพันธ์และการตัดสินใจที่สอดคล้องกับความรู้สึกของตัวเอง",
+        advice:
+            "เชื่อมั่นในความรู้สึกของตนเองและสื่อสารอย่างตรงไปตรงมา",
+    },
+]);
+
+    // =====================================ADD CARD FORM=====================================
     const [cardName, setCardName] = useState("");
-    const [category, setCategory] = useState("Love");
     const [prediction, setPrediction] = useState("");
 
-// =====================================EDIT CARD=====================================
-    const [editingCardId, setEditingCardId] = useState(null);
-    const [editType, setEditType] = useState("Category");
-    const [editName, setEditName] = useState("");
-    const [editCategory, setEditCategory] = useState("Love");
-    const [editPrediction, setEditPrediction] = useState("");
+    const [advice, setAdvice] = useState("");
+    const [image, setImage] = useState(null);
+    const [timeOrCategory, setTimeOrCategory] = useState("Daily");
 
-// =====================================OPEN ADD CARD=====================================
+    // =====================================EDIT CARD=====================================
+    const [editingCardId, setEditingCardId] = useState(null);
+    const [editName, setEditName] = useState("");
+    const [editPrediction, setEditPrediction] = useState("");
+    const [editAdvice, setEditAdvice] = useState("");
+    const [editTimeOrCategory, setEditTimeOrCategory] = useState("Daily");
+
+    // =====================================OPEN ADD CARD=====================================
     const handleOpenAddCard = () => {
-        setCardType("Category");
         setCardName("");
-        setCategory("Love");
         setPrediction("");
         setShowAddCard(true);
+        setAdvice("");
+        setImage(null);
+        setTimeOrCategory("Daily");
     };
-// =====================================CANCEL ADD CARD=====================================
+    // =====================================CANCEL ADD CARD=====================================
     const handleCancel = () => {
-        setCardType("Category");
         setCardName("");
-        setCategory("Love");
         setPrediction("");
         setShowAddCard(false);
+        setAdvice("");
+        setImage(null);
+        setTimeOrCategory("Daily");
     };
 
-// =====================================SAVE NEW CARD=====================================
+    // =====================================SAVE NEW CARD=====================================
 
     const handleSaveCard = (event) => {
         event.preventDefault();
 
-        if (!cardName.trim() || !prediction.trim()) {
+        if (
+            !cardName.trim() ||
+            !prediction.trim() ||
+            !advice.trim()
+        ) {
             return;
         }
 
         const newCard = {
             id: Date.now(),
-            type: cardType,
             name: cardName.trim(),
             title: cardName.trim().toUpperCase(),
             prediction: prediction.trim(),
+            advice: advice.trim(),
+            category: timeOrCategory,
+            image,
         };
-
-        // Category เท่านั้นที่มี category
-        if (cardType === "Category") {
-            newCard.category = category;
-        }
 
         setCards((currentCards) => [
             ...currentCards,
@@ -99,29 +92,32 @@ export default function ManageCardPage() {
         handleCancel();
     };
 
-// =====================================START EDIT=====================================
+    // =====================================EDIT CARD=====================================
     const handleEditCard = (card) => {
         setEditingCardId(card.id);
-
-        setEditType(card.type || "Category");
         setEditName(card.name || "");
-        setEditCategory(card.category || "Love");
         setEditPrediction(card.prediction || "");
+        setEditAdvice(card.advice || "");
+        setEditTimeOrCategory(card.category || "Daily");
     };
 
-// =====================================CANCEL EDIT=====================================
+    // =====================================CANCEL EDIT=====================================
     const handleCancelEdit = () => {
         setEditingCardId(null);
-        setEditType("Category");
         setEditName("");
-        setEditCategory("Love");
         setEditPrediction("");
+        setEditAdvice("");
+        setEditTimeOrCategory("Daily");
     };
 
-// =====================================SAVE EDIT=====================================
+    // =====================================SAVE EDIT=====================================
     const handleSaveEdit = (event, id) => {
         event.preventDefault();
-        if (!editName.trim() || !editPrediction.trim()) {
+        if (
+            !editName.trim() ||
+            !editPrediction.trim() ||
+            !editAdvice.trim()
+        ) {
             return;
         }
         setCards((currentCards) =>
@@ -131,25 +127,20 @@ export default function ManageCardPage() {
                 }
                 const updatedCard = {
                     ...card,
-                    type: editType,
                     name: editName.trim(),
                     title: editName
                         .trim()
                         .toUpperCase(),
                     prediction: editPrediction.trim(),
+                    advice: editAdvice.trim(),
+                    category: editTimeOrCategory,
                 };
-                if (editType === "Category") {
-                    updatedCard.category =
-                        editCategory;
-                } else {
-                    delete updatedCard.category;
-                }
                 return updatedCard;
             })
         );
         handleCancelEdit();
     };
-// =====================================DELETE CARD=====================================
+    // =====================================DELETE CARD=====================================
 
     const handleDeleteCard = (id) => {
         setCards((currentCards) =>
@@ -162,7 +153,6 @@ export default function ManageCardPage() {
         <main className="app-page manage-card-page">
 
             {/* =======HEADER============= */}
-
             <header className="manage-card-header">
                 <button
                     type="button"
@@ -233,9 +223,9 @@ export default function ManageCardPage() {
                     <thead>
                         <tr>
                             <th>CARD NAME</th>
-                            <th>CARD TYPE</th>
-                            <th>CATEGORY</th>
+                            <th>TIME & CATEGORY</th>
                             <th>PREDICTION</th>
+                            <th>ADVICE</th>
                             <th>ACTION</th>
                         </tr>
                     </thead>
@@ -248,19 +238,14 @@ export default function ManageCardPage() {
                                 <tr
                                     key={card.id}
                                 >
-                                {/* CARD NAME */}
+                                    {/* CARD NAME */}
                                     <td>
                                         {isEditing ? (
-                                            <input
-                                                type="text"
+                                            <input type="text"
                                                 value={
                                                     editName
                                                 }
-                                                onChange={(
-                                                    event
-                                                ) =>
-                                                    setEditName(
-                                                        event
+                                                onChange={( event ) => setEditName( event
                                                             .target
                                                             .value
                                                     )
@@ -287,104 +272,26 @@ export default function ManageCardPage() {
                                     </td>
 
                                     {/* CARD TYPE */}
-
+                                    {/* TIME & CATEGORY */}
                                     <td>
-
                                         {isEditing ? (
-                                            <select
-                                                value={
-                                                    editType
-                                                }
-                                                onChange={(
-                                                    event
-                                                ) =>
-                                                    setEditType(
-                                                        event
-                                                            .target
-                                                            .value
-                                                    )
+                                            <select value={editTimeOrCategory}
+                                                onChange={(event) => setEditTimeOrCategory(event.target.value)
                                                 }
                                             >
-
-                                                {CARD_TYPES.map(
-                                                    (item) => (
-                                                        <option
-                                                            key={
-                                                                item
-                                                            }
-                                                            value={
-                                                                item
-                                                            }
-                                                        >
-                                                            {
-                                                                item
-                                                            }
-                                                        </option>
-                                                    )
-                                                )}
-
+                                                <option value="Daily">Daily</option>
+                                                <option value="Monthly">Monthly</option>
+                                                <option value="Weekly">Weekly</option>
+                                                <option value="Love">Love</option>
+                                                <option value="Health">Health</option>
+                                                <option value="Pets">Pets</option>
+                                                <option value="Finance">Finance</option>
+                                                <option value="Career">Career</option>
                                             </select>
                                         ) : (
-                                            <span>
-                                                {
-                                                    card.type
-                                                }
-                                            </span>
-                                        )}
-
-                                    </td>
-                                    {/* CATEGORY */}
-
-                                    <td>
-                                        {card.type ===
-                                        "Category" ? (
-                                            isEditing ? (
-                                                <select
-                                                    value={
-                                                        editCategory
-                                                    }
-                                                    onChange={(
-                                                        event
-                                                    ) =>
-                                                        setEditCategory(
-                                                            event
-                                                                .target
-                                                                .value
-                                                        )
-                                                    }
-                                                >
-                                                    {CATEGORIES.map(
-                                                        (
-                                                            item
-                                                        ) => (
-                                                            <option
-                                                                key={
-                                                                    item
-                                                                }
-                                                                value={
-                                                                    item
-                                                                }
-                                                            >
-                                                                {
-                                                                    item
-                                                                }
-                                                            </option>
-                                                        )
-                                                    )}
-
-                                                </select>
-                                            ) : (
-                                                <span>
-                                                    {
-                                                        card.category
-                                                    }
-                                                </span>
-                                            )
-                                        ) : (
-                                            <span>—</span>
+                                            <span>{card.category}</span>
                                         )}
                                     </td>
-
                                     {/* PREDICTION */}
                                     <td>
                                         {isEditing ? (
@@ -412,7 +319,24 @@ export default function ManageCardPage() {
                                         )}
                                     </td>
 
+                                    {/* ADVICE */}
+                                    <td>
+                                        {isEditing ? (
+                                            <textarea
+                                                rows="2"
+                                                value={editAdvice}
+                                                onChange={(event) =>
+                                                    setEditAdvice(event.target.value)
+                                                }
+                                            />
+                                        ) : (
+                                            <div className="manage-prediction-text">
+                                                {card.advice}
+                                            </div>
+                                        )}
+                                    </td>
                                     {/* ACTION */}
+
                                     <td>
                                         <div className="card-action-buttons">
                                             {isEditing ? (
@@ -424,10 +348,7 @@ export default function ManageCardPage() {
                                                         onClick={(
                                                             event
                                                         ) =>
-                                                            handleSaveEdit(
-                                                                event,
-                                                                card.id
-                                                            )
+                                                            handleSaveEdit( event, card.id)
                                                         }
                                                     >
                                                         ✓
@@ -482,7 +403,7 @@ export default function ManageCardPage() {
                     </tbody>
                 </table>
             </section>
- {/* =====================================ADD CARD SIDE PANEL===================================== */}
+            {/* =====================================ADD CARD SIDE PANEL===================================== */}
             {showAddCard && (
                 <div className="add-card-overlay">
                     <aside className="add-card-panel">
@@ -497,136 +418,121 @@ export default function ManageCardPage() {
                         <div className="add-card-panel-divider"></div>
                         <form
                             className="add-card-form"
-                            onSubmit={
-                                handleSaveCard
-                            }
+                            onSubmit={handleSaveCard}
                         >
-                            {/* CARD TYPE */}
-                            <label>
-                                CARD TYPE
-                            </label>
-                            <select
-                                value={cardType}
-                                onChange={(
-                                    event
-                                ) =>
-                                    setCardType(
-                                        event
-                                            .target
-                                            .value
-                                    )
-                                }
-                            >
-                                {CARD_TYPES.map(
-                                    (item) => (
-                                        <option
-                                            key={item}
-                                            value={item}
-                                        >
-                                            {item}
-                                        </option>
-                                    )
-                                )}
-                            </select>
-                            {/* CARD NAME */}
-                            <label>
-                                CARD NAME
-                            </label>
+
+                            <label>CARD NAME</label>
                             <input
                                 type="text"
                                 value={cardName}
-                                onChange={(
-                                    event
-                                ) =>
-                                    setCardName(
-                                        event
-                                            .target
-                                            .value
-                                    )
+                                onChange={(event) =>
+                                    setCardName(event.target.value)
                                 }
                             />
-                            {/* CATEGORY */}
-                            {cardType ===
-                                "Category" && (
-                                <>
-                                    <label>
-                                        CATEGORY
-                                    </label>
+
+                            <label>PREDICTION</label>
+                            <textarea
+                                rows="3"
+                                value={prediction}
+                                onChange={(event) =>
+                                    setPrediction(event.target.value)
+                                }
+                            />
+
+                            <label>ADVICE</label>
+                            <textarea
+                                rows="3"
+                                value={advice}
+                                onChange={(event) =>
+                                    setAdvice(event.target.value)
+                                }
+                            />
+
+                            <div className="add-card-row">
+
+                                <div className="add-card-column">
+                                    <label>IMAGE</label>
+
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(event) =>
+                                            setImage(
+                                                event.target.files?.[0] || null
+                                            )
+                                        }
+                                    />
+                                </div>
+
+                                <div className="add-card-column">
+                                    <label>TIME OR CATEGORY</label>
 
                                     <select
-                                        value={
-                                            category
-                                        }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            setCategory(
-                                                event
-                                                    .target
-                                                    .value
+                                        value={timeOrCategory}
+                                        onChange={(event) =>
+                                            setTimeOrCategory(
+                                                event.target.value
                                             )
                                         }
                                     >
-                                        {CATEGORIES.map(
-                                            (
-                                                item
-                                            ) => (
-                                                <option
-                                                    key={
-                                                        item
-                                                    }
-                                                    value={
-                                                        item
-                                                    }
-                                                >
-                                                    {
-                                                        item
-                                                    }
-                                                </option>
-                                            )
-                                        )}
+                                        <option value="Daily">
+                                            Daily
+                                        </option>
 
+                                        <option value="Monthly">
+                                            Monthly
+                                        </option>
+
+                                        <option value="Weekly">
+                                            Weekly
+                                        </option>
+
+                                        <option value="Love">
+                                            Love
+                                        </option>
+
+                                        <option value="Health">
+                                            Health
+                                        </option>
+
+                                        <option value="Pets">
+                                            Pets
+                                        </option>
+
+                                        <option value="Finance">
+                                            Finance
+                                        </option>
+
+                                        <option value="Career">
+                                            Career
+                                        </option>
                                     </select>
-                                </>
-                            )}
-                            {/* PREDICTION */}
-                            <label>
-                                PREDICTION
-                            </label>
-                            <textarea
-                                rows="2"
-                                value={
-                                    prediction
-                                }
-                                onChange={(
-                                    event
-                                ) =>
-                                    setPrediction(
-                                        event
-                                            .target
-                                            .value
-                                    )
-                                }
-                            />
+
+                                </div>
+
+                            </div>
+
                             <div className="add-card-form-divider"></div>
-                            {/* BUTTONS */}
+
                             <div className="add-card-actions">
+
                                 <button
                                     type="submit"
                                     className="save-card-btn"
                                 >
                                     SAVE CARD
                                 </button>
+
                                 <button
                                     type="button"
                                     className="cancel-card-btn"
-                                    onClick={
-                                        handleCancel
-                                    }
+                                    onClick={handleCancel}
                                 >
                                     CANCEL
                                 </button>
+
                             </div>
+
                         </form>
                     </aside>
                 </div>
