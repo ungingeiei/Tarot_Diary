@@ -24,16 +24,26 @@ CREATE TABLE IF NOT EXISTS `cards` (
 
 
 CREATE TABLE IF NOT EXISTS `diaries` (
+	`id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
 	`acc_id` INTEGER NOT NULL,
+	PRIMARY KEY(`id`)
+);
+
+
+CREATE TABLE IF NOT EXISTS `saves` (
 	`card_id` INTEGER NOT NULL,
+	`diary_id` INTEGER NOT NULL,
 	`date` DATE NOT NULL,
-	PRIMARY KEY(`acc_id`, `card_id`, `date`)
+	PRIMARY KEY(`card_id`, `diary_id`, `date`)
 );
 
 
 ALTER TABLE `diaries`
+ADD FOREIGN KEY(`acc_id`) REFERENCES `accounts`(`id`)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+ALTER TABLE `saves`
 ADD FOREIGN KEY(`card_id`) REFERENCES `cards`(`id`)
 ON UPDATE NO ACTION ON DELETE NO ACTION;
-ALTER TABLE `diaries`
-ADD FOREIGN KEY(`acc_id`) REFERENCES `accounts`(`id`)
+ALTER TABLE `saves`
+ADD FOREIGN KEY(`diary_id`) REFERENCES `diaries`(`id`)
 ON UPDATE NO ACTION ON DELETE NO ACTION;
