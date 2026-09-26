@@ -115,7 +115,7 @@ export async function POST(request) {
         return Response.json(
             {
                 success: false,
-                message: "Something went wrong"
+                message: error.message
             },
             { status: 500 }
         );

@@ -15,18 +15,57 @@ function DrawContent() {
   const period = searchParams.get("period") || "";
   const [revealing, setRevealing] = useState(false);
 
-  const handleReveal = () => {
+  const handleReveal = async () => {
+    if (!period || !category) {
+      alert("Please select a period and category.");
+      return;
+    }
+
     setRevealing(true);
-    window.setTimeout(() => {
+
+    try {
+      const response = await fetch("/api/draw", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        //using accountId: 1 as a test
+        body: JSON.stringify({
+          accountId: 1,
+          period,
+          category,
+        }),
+      });
+
+      const data = await response.json();
+
+      console.log("Draw API response:", data);
+
+      if (!response.ok) {
+        if (data.reason === "NOT_ENOUGH_COINS") {
+          setRevealing(false);
+
+          alert("Not enough coins.");
+          return;
+        }
+
+        throw new Error(data.message || "Draw failed");
+      }
+
       const params = new URLSearchParams();
-      if (category) {
-        params.set("category", category);
-      }
-      if (period) {
-        params.set("period", period);
-      }
-      router.push(`/reading?${params.toString()}`);
-    }, 900);
+      params.set("period", period);
+      params.set("category", category);
+
+      window.setTimeout(() => {
+        router.push(`/reading?${params.toString()}`);
+      }, 900);
+
+    } catch (error) {
+      console.error("Draw error:", error);
+      setRevealing(false);
+
+      alert(error.message);
+    }
   };
 
   return (

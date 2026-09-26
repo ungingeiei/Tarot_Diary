@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
 
@@ -11,6 +11,21 @@ const READING_PERIODS = [
 
 export default function ReadingPeriodPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const category = searchParams.get("category") || "";
+
+  const handlePeriodClick = (period) => {
+    const params = new URLSearchParams();
+
+    params.set("period", period);
+
+    if (category) {
+      params.set("category", category);
+    }
+
+    router.push(`/category?${params.toString()}`);
+  };
 
   return (
     <main className="app-page reading-period-page">
@@ -49,7 +64,7 @@ export default function ReadingPeriodPage() {
             <button
               type="button"
               className="reading-period-btn"
-              onClick={() => router.push(`/draw?period=${period.key}`)}
+              onClick={() => handlePeriodClick(period.key)}
             >
               Start reading
             </button>

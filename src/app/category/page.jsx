@@ -1,6 +1,5 @@
 "use client";
-
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
 
@@ -14,6 +13,21 @@ const CATEGORIES = [
 
 export default function CategoryPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const period = searchParams.get("period") || "";
+
+  const handleCategoryClick = (category) => {
+    const params = new URLSearchParams();
+
+    if (period) {
+      params.set("period", period);
+    }
+
+    params.set("category", category);
+
+    router.push(`/draw?${params.toString()}`);
+  };
 
   return (
     <main className="app-page category-page">
@@ -39,7 +53,7 @@ export default function CategoryPage() {
             key={category.key}
             type="button"
             className={`category-btn area-${category.area}`}
-            onClick={() => router.push(`/draw?category=${category.key}`)}
+            onClick={() => handleCategoryClick(category.key)}
           >
             {category.label}
           </button>
