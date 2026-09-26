@@ -12,26 +12,19 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, confirmPassword }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
@@ -73,7 +66,6 @@ export default function RegisterPage() {
           <AuthField label="Full name" placeholder="Your name" autoComplete="name" value={name} onChange={setName} icon="user" />
           <AuthField label="Email address" placeholder="you@gmail.com" type="email" autoComplete="email" value={email} onChange={setEmail} icon="mail" />
           <AuthField label="Password" placeholder="Create a password" type="password" autoComplete="new-password" value={password} onChange={setPassword} icon="lock" showToggle />
-          <AuthField label="Confirm password" placeholder="Re-enter your password" type="password" autoComplete="new-password" value={confirmPassword} onChange={setConfirmPassword} icon="lock" showToggle />
 
           {error && <p className="login-error">{error}</p>}
 

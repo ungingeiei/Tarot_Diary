@@ -14,12 +14,12 @@ export async function POST(request) {
       );
     }
 
-    if (confirmPassword !== undefined && password !== confirmPassword) {
-      return Response.json(
-        { success: false, message: "Passwords do not match" },
-        { status: 400 }
-      );
-    }
+    // if (confirmPassword !== undefined && password !== confirmPassword) {
+    //   return Response.json(
+    //     { success: false, message: "Passwords do not match" },
+    //     { status: 400 }
+    //   );
+    // }
 
     if (password.length < 8) {
       return Response.json(
