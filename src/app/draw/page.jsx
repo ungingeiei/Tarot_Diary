@@ -33,6 +33,7 @@ function DrawContent() {
         headers: {
           "Content-Type": "application/json",
         },
+        //using accountId: 1 as a test
         body: JSON.stringify({
           accountId: 1,
           period,

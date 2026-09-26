@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrandMark, MenuIcon, CloseXIcon, HeartCoinIcon } from "./TarotVisual";
 import { NavMenu } from "./NavMenu";
 
@@ -19,8 +19,26 @@ import { NavMenu } from "./NavMenu";
  * icon has extra behaviour (navigating back to /category). Here, the
  * "X" just closes the drawer.
  */
-export function AppHeader({ credits = 50 }) {
+export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [credits, setCredits] = useState(0);
+
+  useEffect(() => {
+    async function loadCoins() {
+      try {
+        const response = await fetch("/api/header?accountId=1");
+        const data = await response.json();
+
+        if (data.success) {
+          setCredits(data.coins);
+        }
+      } catch (error) {
+        console.error("Failed to load coins:", error);
+      }
+    }
+
+    loadCoins();
+  }, []);
 
   return (
     <>
@@ -34,12 +52,18 @@ export function AppHeader({ credits = 50 }) {
           >
             {menuOpen ? <CloseXIcon /> : <MenuIcon />}
           </button>
+
           {!menuOpen && <BrandMark />}
         </div>
-        <div className="credits-pill" aria-label={`${credits} credits`}>
+
+        <div
+          className="credits-pill"
+          aria-label={`${credits} credits`}
+        >
           <span className="coin">
             <HeartCoinIcon />
           </span>
+
           <span>{credits}</span>
         </div>
       </header>
