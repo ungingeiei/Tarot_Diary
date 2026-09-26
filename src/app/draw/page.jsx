@@ -4,16 +4,20 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { TarotCard, SparkleIcon } from "../../components/TarotVisual";
+import NotEnoughCoins from "../../components/NotEnoughCoins";
 
 const CARD_WIDTHS = ["145px", "175px", "215px", "175px", "145px"];
-const DRAWN_INDEX = 2; // the center card is the one already drawn for the user
+const DRAWN_INDEX = 2;
 
 function DrawContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const category = searchParams.get("category") || "";
   const period = searchParams.get("period") || "";
+
   const [revealing, setRevealing] = useState(false);
+  const [showNotEnoughCoins, setShowNotEnoughCoins] = useState(false);
 
   const handleReveal = async () => {
     if (!period || !category) {
@@ -29,7 +33,6 @@ function DrawContent() {
         headers: {
           "Content-Type": "application/json",
         },
-        //using accountId: 1 as a test
         body: JSON.stringify({
           accountId: 1,
           period,
@@ -39,13 +42,10 @@ function DrawContent() {
 
       const data = await response.json();
 
-      console.log("Draw API response:", data);
-
       if (!response.ok) {
         if (data.reason === "NOT_ENOUGH_COINS") {
           setRevealing(false);
-
-          alert("Not enough coins.");
+          setShowNotEnoughCoins(true);
           return;
         }
 
@@ -63,7 +63,6 @@ function DrawContent() {
     } catch (error) {
       console.error("Draw error:", error);
       setRevealing(false);
-
       alert(error.message);
     }
   };
@@ -73,25 +72,56 @@ function DrawContent() {
       <AppHeader />
 
       <section className="draw-hero">
-        <div className="card-row" role="img" aria-label="Your card has been drawn">
+        <div
+          className="card-row"
+          role="img"
+          aria-label="Your card has been drawn"
+        >
           {CARD_WIDTHS.map((width, i) => (
-            <div key={i} className={`card-pick${i === DRAWN_INDEX ? " is-selected" : ""}`}>
+            <div
+              key={i}
+              className={`card-pick${
+                i === DRAWN_INDEX ? " is-selected" : ""
+              }`}
+            >
               <TarotCard style={{ width }} />
             </div>
           ))}
         </div>
 
-        <div className="category-divider narrow" aria-hidden="true">
+        <div
+          className="category-divider narrow"
+          aria-hidden="true"
+        >
           <span />
           <SparkleIcon />
           <span />
         </div>
-        <p className="draw-subtitle">Focus your thoughts, trust your intuition, and let the cards reveal new possibilities</p>
 
-        <button type="button" className="gold-button-lg" onClick={handleReveal} disabled={revealing}>
+        <p className="draw-subtitle">
+          Focus your thoughts, trust your intuition, and let the cards reveal
+          new possibilities
+        </p>
+
+        <button
+          type="button"
+          className="gold-button-lg"
+          onClick={handleReveal}
+          disabled={revealing}
+        >
           {revealing ? "Revealing…" : "Reveal Your Cards"}
         </button>
       </section>
+
+      {showNotEnoughCoins && (
+        <NotEnoughCoins
+          onCancel={() => setShowNotEnoughCoins(false)}
+          onGetCoins={() => {
+            setShowNotEnoughCoins(false);
+            router.push("/coins");
+          }}
+        />
+      )}
     </main>
   );
 }
