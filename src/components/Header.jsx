@@ -26,7 +26,7 @@ export function AppHeader() {
   useEffect(() => {
     async function loadCoins() {
       try {
-        const response = await fetch("/api/header?accountId=1");
+        const response = await fetch("/api/header");
         const data = await response.json();
 
         if (data.success) {
