@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
 
@@ -11,22 +11,17 @@ const CATEGORIES = [
   { key: "health", label: "Health", area: "health" },
 ];
 
+// CHANGED: category is now chosen FIRST. This page no longer reads an
+// incoming `period` param — instead it forwards the chosen category
+// to /time, which is the one that finally sends both category+period
+// to /draw.
 export default function CategoryPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const period = searchParams.get("period") || "";
 
   const handleCategoryClick = (category) => {
     const params = new URLSearchParams();
-
-    if (period) {
-      params.set("period", period);
-    }
-
     params.set("category", category);
-
-    router.push(`/draw?${params.toString()}`);
+    router.push(`/time?${params.toString()}`);
   };
 
   return (

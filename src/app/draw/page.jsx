@@ -34,6 +34,7 @@ function DrawContent() {
           "Content-Type": "application/json",
         },
         //using accountId: 1 as a test
+        //will be fix
         body: JSON.stringify({
           accountId: 1,
           period,

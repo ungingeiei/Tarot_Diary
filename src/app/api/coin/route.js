@@ -1,18 +1,11 @@
 import db from "@/lib/db";
 import { getSession } from "@/lib/session";
 
-// CHANGED: previously read `accountId` from the query string
-// (?accountId=1), meaning any client could ask for any account's coin
-// balance. Now reads the account from the signed session cookie —
-// see lib/session.js.
-
 export async function GET() {
   try {
     const session = await getSession();
 
     if (!session) {
-      // Not signed in. Header.jsx treats this as "just show 0 coins",
-      // not an error — AppHeader renders on pages a guest can visit.
       return Response.json(
         { success: false, message: "Not signed in" },
         { status: 401 }

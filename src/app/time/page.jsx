@@ -9,6 +9,10 @@ const READING_PERIODS = [
   { key: "monthly", label: "MONTHLY" },
 ];
 
+// CHANGED: this page now runs SECOND, after /category. It reads the
+// category chosen there and, once a period is picked, forwards both
+// to /draw. Previously this forwarded back to /category — that loop
+// is gone now that category always runs first.
 export default function ReadingPeriodPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,14 +21,9 @@ export default function ReadingPeriodPage() {
 
   const handlePeriodClick = (period) => {
     const params = new URLSearchParams();
-
+    params.set("category", category);
     params.set("period", period);
-
-    if (category) {
-      params.set("category", category);
-    }
-
-    router.push(`/category?${params.toString()}`);
+    router.push(`/draw?${params.toString()}`);
   };
 
   return (
