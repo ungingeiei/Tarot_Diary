@@ -100,22 +100,50 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
   // the TEST MODE handleSubmit above, then uncomment this one. Adjust
   // the fetch URL/response shape to match your real API.
   
+  // --- CHANGED: the email + password typed here are now CHECKED BY THE
+  // SERVER before the user is allowed to reach the home page (/category).
+  // Two checks, both must pass:
+  //   1. POST /api/auth/login  -> the server looks the email up in the
+  //      `accounts` table and compares the password with the stored
+  //      hash. Wrong email or password => it answers 401 and we stop.
+  //      (On success it also sets the httpOnly session cookie.)
+  //   2. GET  /api/auth/me     -> asks "who is signed in?" using that new
+  //      cookie, confirming the session works and the account exists.
+  // Only after both succeed do we save the sign-in (lib/auth.js, which
+  // the Header reads) and navigate. Otherwise the user stays on this
+  // page and sees an error message.
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
+      // ----- Check 1: email + password -----
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
         throw new Error(data.message || "Invalid email or password");
       }
-      const user = await res.json(); // expect e.g. { name, email }
-      signIn({ name: user.name || email.split("@")[0] || "Seeker", email });
+
+      // ----- Check 2: the account/session is really valid -----
+      const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+      const meData = await meRes.json().catch(() => ({}));
+      if (!meRes.ok || !meData.success || !meData.user) {
+        throw new Error("We couldn't verify your account. Please try again.");
+      }
+
+      // ----- Verified: sign in and go to the home page -----
+      // The routes reply { success, user: { name, email, ... } }, so the
+      // name is read from `user.name` (reading it from the top level
+      // would store "undefined").
+      const user = meData.user;
+      signIn({
+        name: user.name || email.split("@")[0] || "Seeker",
+        email: user.email || email,
+      });
       router.push("/category");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -149,7 +177,12 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
 
             <div className="forgot-row">
               <span />
-              <button type="button">Forgot your password?</button>
+              {/* --- CHANGED: now opens the forgot-password page
+                  (app/forgot-password/page.jsx), where the user asks for
+                  an emailed reset link. Same button, same styling. */}
+              <button type="button" onClick={() => router.push("/forgot-password")}>
+                Forgot your password?
+              </button>
             </div>
 
             {/* Only ever populated when REAL MODE's handleSubmit sets an
