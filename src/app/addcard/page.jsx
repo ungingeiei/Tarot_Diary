@@ -27,6 +27,8 @@ const [cards, setCards] = useState([
     },
 ]);
 
+    const [deleteTarget, setDeleteTarget] = useState(null);
+
     // =====================================ADD CARD FORM=====================================
     const [cardName, setCardName] = useState("");
     const [prediction, setPrediction] = useState("");
@@ -381,15 +383,11 @@ const [cards, setCards] = useState([
                                                         ✎
                                                     </button>
 
-                                                    <button
+                                                   <button
                                                         type="button"
                                                         className="delete-card-btn"
                                                         aria-label="Delete card"
-                                                        onClick={() =>
-                                                            handleDeleteCard(
-                                                                card.id
-                                                            )
-                                                        }
+                                                        onClick={() => setDeleteTarget(card)}
                                                     >
                                                         🗑
                                                     </button>
@@ -535,6 +533,42 @@ const [cards, setCards] = useState([
 
                         </form>
                     </aside>
+                </div>
+            )}
+
+            {deleteTarget && (
+                <div className="delete-modal-overlay">
+                    <div className="delete-modal">
+                        <h2>Delete Card</h2>
+
+                        <p>Are you sure you want to delete?</p>
+
+                        <p className="delete-warning">
+                            All linked predictions will also be deleted.
+                            This action cannot be undone.
+                        </p>
+
+                        <div className="delete-modal-actions">
+                            <button
+                                type="button"
+                                className="delete-confirm-btn"
+                                onClick={() => {
+                                    handleDeleteCard(deleteTarget.id);
+                                    setDeleteTarget(null);
+                                }}
+                            >
+                                DELETE
+                            </button>
+
+                            <button
+                                type="button"
+                                className="delete-cancel-btn"
+                                onClick={() => setDeleteTarget(null)}
+                            >
+                                CANCEL
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </main>
