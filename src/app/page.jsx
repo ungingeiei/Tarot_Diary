@@ -25,7 +25,28 @@ export default function Home() {
         
         <p>Discover your destiny through the wisdom of Tarot cards.</p>
 
-        <a href="/login">Start Reading</a>
+        <div className="home-reading-options">
+          <a
+            href="/time"
+            className="home-reading-card"
+          >
+            <div className="home-reading-title">
+              TIME READING
+            </div>
+
+          </a>
+
+          <a
+            href="/category"
+            className="home-reading-card"
+          >
+            <div className="home-reading-title">
+              CATEGORY READING
+            </div>
+
+          </a>
+
+        </div>
       </section>
     </main>
   );

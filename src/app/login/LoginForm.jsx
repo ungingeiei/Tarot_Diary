@@ -56,7 +56,7 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
         const user = data.user || {};
         if (cancelled) return;
         signIn({ name: user.name || "Seeker", email: user.email || "" });
-        router.replace("/category");
+        router.replace("/");
       } catch (err) {
         if (cancelled) return;
         setGoogleReturnError(err.message || "Google sign-in failed. Please try again.");
@@ -144,7 +144,7 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
         name: user.name || email.split("@")[0] || "Seeker",
         email: user.email || email,
       });
-      router.push("/category");
+      router.push("/");
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {

@@ -2580,3 +2580,32 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     background: transparent;
     border: 1px solid #c9a96e;
 }
+
+/* อันนี้แก้หน้า home */
+.home-reading-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 32px;
+}
+
+.home-reading-card {
+    min-width: 180px;
+    padding: 14px 28px;
+    border: 1px solid #c9a96e;
+    color: #c9a96e;
+    text-decoration: none;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    transition: all 0.25s ease;
+}
+
+.home-reading-card:hover {
+    background: transparent;
+    box-shadow:
+        0 0 12px rgba(201, 169, 110, 0.25);
+    transform: translateY(-2px);
+    color: #fff;
+}
