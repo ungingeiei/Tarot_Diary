@@ -38,6 +38,7 @@ function ProfileHeader() {
 
 export default function ProfilePage() {
     const [isEditing, setIsEditing] = useState(false);
+    const router = useRouter();
     return (
         <main className="app-page profile-page">
 
@@ -183,7 +184,7 @@ export default function ProfilePage() {
                                 <button
                                     type="button"
                                     className="admin-card-management-btn"
-                                    onClick={() => router.push("/managecard")}
+                                    onClick={() => router.push("/addcard")}
                                 >
                                     CARD MANAGEMENT
                                 </button>
