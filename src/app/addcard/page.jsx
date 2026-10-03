@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { NavMenu } from "../../components/NavMenu";
 import {
     MenuIcon,
@@ -14,18 +14,38 @@ export default function ManageCardPage() {
     const [showAddCard, setShowAddCard] = useState(false);
 
 
-const [cards, setCards] = useState([
-    {
-        id: 1,
-        name: "The Lovers",
-        title: "THE LOVERS",
-        category: "Love",
-        prediction:
-            "ความสัมพันธ์และการตัดสินใจที่สอดคล้องกับความรู้สึกของตัวเอง",
-        advice:
-            "เชื่อมั่นในความรู้สึกของตนเองและสื่อสารอย่างตรงไปตรงมา",
-    },
-]);
+// The deck now comes from `cards` + `card_meanings` through
+// /api/admin/cards. It used to be this one hard-coded Lovers entry,
+// and anything added to it vanished on the next refresh.
+    const [cards, setCards] = useState([]);
+    const [loadError, setLoadError] = useState("");
+    const [busy, setBusy] = useState(false);
+
+    const loadCards = useCallback(async () => {
+        try {
+            const res = await fetch("/api/admin/cards", { cache: "no-store" });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                setLoadError(
+                    res.status === 403
+                        ? "This console is for admin accounts only."
+                        : res.status === 401
+                            ? "Please sign in."
+                            : data.message || "Could not load the deck."
+                );
+                setCards([]);
+                return;
+            }
+            setLoadError("");
+            setCards(data.cards);
+        } catch {
+            setLoadError("Could not load the deck.");
+        }
+    }, []);
+
+    useEffect(() => {
+        loadCards();
+    }, [loadCards]);
 
     const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -34,7 +54,7 @@ const [cards, setCards] = useState([
     const [prediction, setPrediction] = useState("");
 
     const [advice, setAdvice] = useState("");
-    const [image, setImage] = useState(null);
+    const [image, setImage] = useState("");
     const [timeOrCategory, setTimeOrCategory] = useState("Daily");
 
     // =====================================EDIT CARD=====================================
@@ -50,7 +70,7 @@ const [cards, setCards] = useState([
         setPrediction("");
         setShowAddCard(true);
         setAdvice("");
-        setImage(null);
+        setImage("");
         setTimeOrCategory("Daily");
     };
     // =====================================CANCEL ADD CARD=====================================
@@ -59,13 +79,47 @@ const [cards, setCards] = useState([
         setPrediction("");
         setShowAddCard(false);
         setAdvice("");
-        setImage(null);
+        setImage("");
         setTimeOrCategory("Daily");
     };
 
     // =====================================SAVE NEW CARD=====================================
 
-    const handleSaveCard = (event) => {
+    const [uploading, setUploading] = useState(false);
+
+    // Uploading on change rather than on submit keeps the save request
+    // plain JSON, and shows the admin straight away whether the image
+    // was accepted instead of failing after they filled the whole form.
+    const handleImageChange = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+            setImage("");
+            return;
+        }
+
+        setUploading(true);
+        setLoadError("");
+        try {
+            const body = new FormData();
+            body.append("file", file);
+            const res = await fetch("/api/admin/cards/image", { method: "POST", body });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                setLoadError(data.message || "Could not upload the image.");
+                setImage("");
+                event.target.value = "";
+                return;
+            }
+            setImage(data.url);
+        } catch {
+            setLoadError("Could not upload the image.");
+            setImage("");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSaveCard = async (event) => {
         event.preventDefault();
 
         if (
@@ -76,22 +130,33 @@ const [cards, setCards] = useState([
             return;
         }
 
-        const newCard = {
-            id: Date.now(),
-            name: cardName.trim(),
-            title: cardName.trim().toUpperCase(),
-            prediction: prediction.trim(),
-            advice: advice.trim(),
-            category: timeOrCategory,
-            image,
-        };
-
-        setCards((currentCards) => [
-            ...currentCards,
-            newCard,
-        ]);
-
-        handleCancel();
+        setBusy(true);
+        try {
+            const res = await fetch("/api/admin/cards", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: cardName.trim(),
+                    prediction: prediction.trim(),
+                    advice: advice.trim(),
+                    category: timeOrCategory,
+                    image,
+                }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                // e.g. this card already has a reading for that category
+                setLoadError(data.message || "Could not add the card.");
+                return;
+            }
+            // Re-read rather than guessing the new row: the server
+            // decides the id, and may have attached this reading to a
+            // card that already existed.
+            await loadCards();
+            handleCancel();
+        } finally {
+            setBusy(false);
+        }
     };
 
     // =====================================EDIT CARD=====================================
@@ -113,7 +178,7 @@ const [cards, setCards] = useState([
     };
 
     // =====================================SAVE EDIT=====================================
-    const handleSaveEdit = (event, id) => {
+    const handleSaveEdit = async (event, id) => {
         event.preventDefault();
         if (
             !editName.trim() ||
@@ -122,34 +187,47 @@ const [cards, setCards] = useState([
         ) {
             return;
         }
-        setCards((currentCards) =>
-            currentCards.map((card) => {
-                if (card.id !== id) {
-                    return card;
-                }
-                const updatedCard = {
-                    ...card,
+        setBusy(true);
+        try {
+            const res = await fetch("/api/admin/cards", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id,
                     name: editName.trim(),
-                    title: editName
-                        .trim()
-                        .toUpperCase(),
                     prediction: editPrediction.trim(),
                     advice: editAdvice.trim(),
                     category: editTimeOrCategory,
-                };
-                return updatedCard;
-            })
-        );
-        handleCancelEdit();
+                }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                setLoadError(data.message || "Could not save the card.");
+                return;
+            }
+            await loadCards();
+            handleCancelEdit();
+        } finally {
+            setBusy(false);
+        }
     };
     // =====================================DELETE CARD=====================================
 
-    const handleDeleteCard = (id) => {
-        setCards((currentCards) =>
-            currentCards.filter(
-                (card) => card.id !== id
-            )
-        );
+    const handleDeleteCard = async (id) => {
+        setBusy(true);
+        try {
+            const res = await fetch(`/api/admin/cards?id=${encodeURIComponent(id)}`, {
+                method: "DELETE",
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                setLoadError(data.message || "Could not delete the card.");
+                return;
+            }
+            await loadCards();
+        } finally {
+            setBusy(false);
+        }
     };
     return (
         <main className="app-page manage-card-page">
@@ -186,6 +264,13 @@ const [cards, setCards] = useState([
                     <div className="admin-console">
                         ADMIN CONSOLE
                     </div>
+
+                    {/* Covers "admins only", a failed save, a dropped
+                        connection — without it the console would just
+                        stop responding to clicks with no reason given. */}
+                    {loadError && (
+                        <p className="login-error">{loadError}</p>
+                    )}
 
                 </div>
 
@@ -451,15 +536,26 @@ const [cards, setCards] = useState([
                                 <div className="add-card-column">
                                     <label>IMAGE</label>
 
+                                    {/* The file goes to the bucket as soon as it
+                                        is chosen, and what is kept in state is
+                                        the path the upload answers with — that
+                                        is what `cards.pict` stores. */}
                                     <input
                                         type="file"
-                                        accept="image/*"
-                                        onChange={(event) =>
-                                            setImage(
-                                                event.target.files?.[0] || null
-                                            )
-                                        }
+                                        accept="image/jpeg,image/png,image/webp,image/gif"
+                                        disabled={uploading}
+                                        onChange={handleImageChange}
                                     />
+
+                                    {uploading && <p className="add-card-hint">Uploading…</p>}
+
+                                    {image && !uploading && (
+                                        <img
+                                            src={image}
+                                            alt="Card preview"
+                                            className="add-card-preview"
+                                        />
+                                    )}
                                 </div>
 
                                 <div className="add-card-column">

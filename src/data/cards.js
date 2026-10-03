@@ -137,7 +137,7 @@ export const CARDS = {
  * intentionally generic — one line of flavor text per card, not tied to
  * love/finance/career/pets/health.
  */
-const SHARE_BLURBS = {
+export const SHARE_BLURBS = {
   fool: "Getting the Fool as your daily card is a sign that a fresh start is calling. This card is all about new beginnings, leaps of faith, and the freedom of an open road.",
   magician: "Getting the Magician as your daily card is a sign that you have every tool you need. This card is all about willpower, resourcefulness, and turning intention into action.",
   high_priestess: "Getting the High Priestess as your daily card is a sign to trust what you already sense. This card is all about intuition, quiet knowing, and the wisdom beneath the surface.",
@@ -167,7 +167,7 @@ function shareBlurbFor(cardId, cardName) {
   );
 }
 
-const CARD_MEANINGS = {
+export const CARD_MEANINGS = {
   fool: {
     love: {
       summary: [
@@ -838,7 +838,7 @@ const CATEGORY_LABELS = {
 };
 
 
-const TIME_MEANINGS = {
+export const TIME_MEANINGS = {
   fool: {
     daily: {
       summary: [

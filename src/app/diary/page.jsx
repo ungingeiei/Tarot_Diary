@@ -34,9 +34,19 @@ export default function DiaryPage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Stand-in for: GET /api/diary
-    setEntries(getDiaryEntries());
-    setLoaded(true);
+    // getDiaryEntries is a request now, not a localStorage read, so the
+    // list arrives after this effect returns.
+    let cancelled = false;
+    getDiaryEntries()
+      .then((list) => {
+        if (!cancelled) setEntries(list);
+      })
+      .finally(() => {
+        if (!cancelled) setLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const toggleExpand = (id) => {
@@ -48,9 +58,8 @@ export default function DiaryPage() {
     });
   };
 
-  const handleDelete = (id) => {
-    // Stand-in for: DELETE /api/diary/:id
-    setEntries(deleteDiaryEntry(id));
+  const handleDelete = async (id) => {
+    setEntries(await deleteDiaryEntry(id));
   };
 
   // Header icon button: toggles the NavMenu open/closed.

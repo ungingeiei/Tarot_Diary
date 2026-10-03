@@ -119,7 +119,15 @@ export default function CheckInReward({ coins = 0, onCollect }) {
                         ))}
                     </div>
 
-                    <div className="checkin-streak">
+                    {/* Nothing banked yet means there is no streak to report:
+                        a brand-new account was reading "DAY 0 STREAK". The
+                        badge is hidden rather than removed, so collecting the
+                        first day does not shove the button 70px down the page
+                        just as it is being clicked. */}
+                    <div
+                        className={`checkin-streak${streak > 0 ? "" : " is-empty"}`}
+                        aria-hidden={streak > 0 ? undefined : "true"}
+                    >
                         <span className="streak-lightning">ϟ</span>
                         <span>DAY {streak} STREAK</span>
                     </div>
