@@ -44,7 +44,7 @@ export async function POST(request) {
 
     const [result] = await db.execute(
       `INSERT INTO accounts (f_name, email, pwd, role, coin, streak)
-       VALUES (?, ?, ?, 'user', 100, 0)`,
+       VALUES (?, ?, ?, 'user', 50, 0)`,
       [name, email, hashed]
     );
 
