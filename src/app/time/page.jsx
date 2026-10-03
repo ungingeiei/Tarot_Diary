@@ -1,5 +1,5 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
 
@@ -9,22 +9,8 @@ const READING_PERIODS = [
   { key: "monthly", label: "MONTHLY" },
 ];
 
-// CHANGED: this page now runs SECOND, after /category. It reads the
-// category chosen there and, once a period is picked, forwards both
-// to /draw. Previously this forwarded back to /category — that loop
-// is gone now that category always runs first.
 export default function ReadingPeriodPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const category = searchParams.get("category") || "";
-
-  const handlePeriodClick = (period) => {
-    const params = new URLSearchParams();
-    params.set("category", category);
-    params.set("period", period);
-    router.push(`/draw?${params.toString()}`);
-  };
 
   return (
     <main className="app-page reading-period-page">
@@ -63,7 +49,7 @@ export default function ReadingPeriodPage() {
             <button
               type="button"
               className="reading-period-btn"
-              onClick={() => handlePeriodClick(period.key)}
+              onClick={() => router.push(`/draw?period=${period.key}`)}
             >
               Start reading
             </button>

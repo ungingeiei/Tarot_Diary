@@ -11,11 +11,12 @@ export function AppHeader() {
   useEffect(() => {
     async function loadCoins() {
       try {
-        const response = await fetch("/api/coin");
+        const response = await fetch("/api/auth/me");
         const data = await response.json();
 
         if (data.success) {
-          setCredits(data.coins);
+          const coin = data.user.coins;
+          setCredits(coin);
         }
       } catch (error) {
         console.error("Failed to load coins:", error);

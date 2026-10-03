@@ -1,4 +1,5 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
@@ -11,18 +12,8 @@ const CATEGORIES = [
   { key: "health", label: "Health", area: "health" },
 ];
 
-// CHANGED: category is now chosen FIRST. This page no longer reads an
-// incoming `period` param — instead it forwards the chosen category
-// to /time, which is the one that finally sends both category+period
-// to /draw.
 export default function CategoryPage() {
   const router = useRouter();
-
-  const handleCategoryClick = (category) => {
-    const params = new URLSearchParams();
-    params.set("category", category);
-    router.push(`/time?${params.toString()}`);
-  };
 
   return (
     <main className="app-page category-page">
@@ -48,7 +39,7 @@ export default function CategoryPage() {
             key={category.key}
             type="button"
             className={`category-btn area-${category.area}`}
-            onClick={() => handleCategoryClick(category.key)}
+            onClick={() => router.push(`/draw?category=${category.key}`)}
           >
             {category.label}
           </button>
