@@ -55,7 +55,11 @@ const DAILY_REWARDS = {
 export async function collectCheckinReward(accountId) {
     // Check current account information first
     const [rows] = await db.execute(
-        `SELECT coin, streak, last_login_date
+        `SELECT
+        coin,
+        streak,
+        last_login_date,
+        last_login_date = CURDATE() AS claimed_today
      FROM accounts
      WHERE id = ?
      LIMIT 1`,
@@ -74,22 +78,14 @@ export async function collectCheckinReward(accountId) {
     const account = rows[0];
 
     // Already collected today
-    if (account.last_login_date) {
-        const lastLogin = new Date(account.last_login_date);
-        const today = new Date();
-
-        const lastDate = lastLogin.toISOString().slice(0, 10);
-        const todayDate = today.toISOString().slice(0, 10);
-
-        if (lastDate === todayDate) {
-            return {
-                ok: false,
-                reason: "already_claimed",
-                coin: account.coin,
-                streak: account.streak,
-                reward: 0,
-            };
-        }
+    if (account.claimed_today) {
+        return {
+            ok: false,
+            reason: "already_claimed",
+            coin: account.coin,
+            streak: account.streak,
+            reward: 0,
+        };
     }
 
     // Calculate streak

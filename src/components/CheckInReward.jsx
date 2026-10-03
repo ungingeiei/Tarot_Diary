@@ -19,22 +19,24 @@ export default function CheckInReward({ coins = 0, onCollect }) {
     const [currentDay, setCurrentDay] = useState(1);
     const [claimed, setClaimed] = useState(false);
     const [loading, setLoading] = useState(false);
+
     useEffect(() => {
-        async function loadCoins() {
+        async function loadData() {
             try {
                 const response = await fetch("/api/auth/me");
                 const data = await response.json();
 
                 if (data.success) {
-                    const coin = data.user.coins;
-                    setCurrentCoins(coin);
+                    setCurrentCoins(data.user.coins);
+                    setCurrentDay(data.user.streak);
+                    setClaimed(data.user.claimedToday);
                 }
             } catch (error) {
                 console.error("Failed to load coins:", error);
             }
         }
 
-        loadCoins();
+        loadData();
     }, []);
 
     const handleCollect = async () => {
@@ -64,10 +66,6 @@ export default function CheckInReward({ coins = 0, onCollect }) {
             setCurrentCoins(data.coin);
             setCurrentDay(data.streak);
             setClaimed(true);
-
-            if (onCollect) {
-                onCollect(data.reward);
-            }
         } catch (error) {
             console.error("Failed to collect daily reward:", error);
         } finally {
@@ -122,13 +120,13 @@ export default function CheckInReward({ coins = 0, onCollect }) {
                     <button
                         type="button"
                         className="checkin-collect-btn"
-                        onClick={handleCollect}
-                        disabled={loading || claimed}
+                        onClick={claimed ? onCollect : handleCollect}
+                        disabled={loading}
                     >
                         {loading
                             ? "COLLECTING..."
                             : claimed
-                                ? "COLLECTED"
+                                ? "CONTINUE"
                                 : "COLLECT"}
                     </button>
                 </div>

@@ -15,8 +15,7 @@ export function AppHeader() {
         const data = await response.json();
 
         if (data.success) {
-          const coin = data.user.coins;
-          setCredits(coin);
+          setCredits(data.user.coins);
         }
       } catch (error) {
         console.error("Failed to load coins:", error);

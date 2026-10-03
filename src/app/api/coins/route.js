@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     const [rows] = await db.execute(
-      "SELECT coin FROM accounts WHERE id = ?",
+      "SELECT coin, streak, last_login_date FROM accounts WHERE id = ?",
       [session.accountId]
     );
 
@@ -27,6 +27,8 @@ export async function GET() {
     return Response.json({
       success: true,
       coins: rows[0].coin,
+      streak: rows[0].streak,
+      lastLoginDate: rows[0].last_login_date,
     });
   } catch (error) {
     console.error("Coins API error:", error);
