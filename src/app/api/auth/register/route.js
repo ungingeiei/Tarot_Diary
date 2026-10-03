@@ -43,8 +43,8 @@ export async function POST(request) {
     const hashed = await hashPassword(password);
 
     const [result] = await db.execute(
-      `INSERT INTO accounts (f_name, email, pwd, role, coin, streak)
-       VALUES (?, ?, ?, 'user', 100, 0)`,
+      `INSERT INTO accounts (f_name, l_name, email, pwd, role, coin, streak)
+       VALUES (?, '', ?, ?, 'user', 50, 0)`,
       [name, email, hashed]
     );
 
