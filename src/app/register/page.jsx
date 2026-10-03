@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthField } from "../../components/AuthField";
 import { BrandMark } from "../../components/TarotVisual";
+import CheckInReward from "../../components/CheckInReward";
 // --- ADDED: password rule checker used before saving to accounts.pwd ---
 import { validatePassword } from "../../lib/validators/password";
 import { signIn } from "../../lib/auth";
@@ -25,6 +26,10 @@ export default function RegisterPage() {
   // True from the moment "Continue with Google" is pressed until the
   // browser leaves this page, so the button stops looking clickable.
   const [googleStarting, setGoogleStarting] = useState(false);
+  // Same as the login page: a new account collects day 1 of the streak
+  // before reaching the home page, instead of silently landing there
+  // with coins it was never shown.
+  const [showReward, setShowReward] = useState(false);
 
   // --- CHANGED: the account is now really created. This used to be a
   // setTimeout that only flipped the button label, so nothing was ever
@@ -76,7 +81,7 @@ export default function RegisterPage() {
         name: user.name || name,
         email: user.email || email,
       });
-      router.push("/");
+      setShowReward(true);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -147,6 +152,8 @@ export default function RegisterPage() {
       </section>
 
       <footer className="auth-footer register-footer">© 2026 Tarot Diary <span>·</span> Terms <span>·</span> Privacy</footer>
+
+      {showReward && <CheckInReward onCollect={() => router.push("/")} />}
     </main>
   );
 }

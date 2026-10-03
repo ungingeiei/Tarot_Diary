@@ -2780,6 +2780,11 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     letter-spacing: 3.5px;
 }
 
+/* Keeps the badge's space in the layout while it has nothing to say. */
+.checkin-streak.is-empty {
+    visibility: hidden;
+}
+
 .streak-lightning {
     color: #f2d45b;
     font-size: 18px;
@@ -2805,4 +2810,20 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .checkin-collect-btn:hover {
     background: #9b7738;
     transform: translateY(-2px);
+}
+
+/* Card image upload (admin console) */
+.add-card-hint {
+    margin: 6px 0 0;
+    color: #c9a96e;
+    font-size: 13px;
+}
+
+.add-card-preview {
+    margin-top: 10px;
+    max-width: 120px;
+    max-height: 170px;
+    border: 1px solid rgba(201, 169, 110, 0.5);
+    border-radius: 8px;
+    object-fit: cover;
 }

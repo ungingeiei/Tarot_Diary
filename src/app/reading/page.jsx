@@ -1,17 +1,18 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { TarotCard } from "../../components/TarotVisual";
 import { ShareReadingModal } from "../../components/ShareReadingModal";
 
-import { fetchDailyCard, fetchTimeCard } from "../../data/cards";
+import { fetchDailyCard, fetchTimeCard } from "../../data/cardsClient";
 
 import { isSignedIn } from "../../lib/auth";
 import { saveDiaryEntry } from "../../lib/diary";
 
 function ReadingContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "";
 
@@ -28,15 +29,32 @@ function ReadingContent() {
     setCard(null);
     setSaved(false);
 
-    // Stand-in for: fetch(`/api/cards/daily?category=${category}`)
-
     const fetchCard = period
       ? fetchTimeCard(period)
       : fetchDailyCard(category);
 
-    fetchCard.then((result) => {
-      if (!cancelled) setCard(result);
-    });
+    fetchCard
+      .then((result) => {
+        if (!cancelled) setCard(result);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        // Landing here without having drawn — a bookmarked /reading URL,
+        // or a window that has since rolled over. The card now belongs to
+        // a paid draw, so send them to the screen that makes one instead
+        // of quietly handing out a free reading.
+        if (err?.reason === "NO_DRAW") {
+          const params = new URLSearchParams();
+          if (category) params.set("category", category);
+          if (period) params.set("period", period);
+          router.replace(`/draw?${params.toString()}`);
+          return;
+        }
+        setToast({
+          type: "error",
+          message: err?.message || "Could not load your reading. Please try again.",
+        });
+      });
 
     return () => {
       cancelled = true;
@@ -64,20 +82,20 @@ function ReadingContent() {
       return;
     }
 
+    // Only the card and which reading it was: the server joins the text
+    // back from card_meanings, so nothing is duplicated into the save.
     saveDiaryEntry({
       cardId: card.id,
-      cardName: card.name,
-      image: card.image,
-      imageAlt: card.imageAlt,
-      category: category || "love",
-      categoryLabel: card.diaryLabel,
-      text: card.summary.join(" "),
-      adviceTitle: card.adviceTitle,
-      advice: card.advice,
+      scope: card.scope,
+      topic: card.topic,
+    }).then((ok) => {
+      if (ok) {
+        setSaved(true);
+        setToast({ type: "success", message: "Reading saved successfully" });
+      } else {
+        setToast({ type: "error", message: "Could not save this reading. Please try again." });
+      }
     });
-
-    setSaved(true);
-    setToast({ type: "success", message: "Reading saved successfully" });
   };
 
   return (

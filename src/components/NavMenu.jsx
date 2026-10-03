@@ -34,8 +34,16 @@ export function NavMenu({ onNavigate, onDismiss }) {
     router.push(path);
   };
 
-  const handleLogout = () => {
-    // Stand-in for: POST /api/auth/logout
+  const handleLogout = async () => {
+    // The server clears the httpOnly session cookie. signOut() only ever
+    // cleared the localStorage mirror, so the real session stayed valid
+    // and /api/auth/me kept answering 200 after "logging out".
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Even if that request fails, still sign out on this device rather
+      // than leaving the user looking signed in.
+    }
     signOut();
     onNavigate?.();
     router.push("/login");
