@@ -15,6 +15,9 @@ export default function RegisterPage() {
   // --- ADDED: holds the messages for whichever password rules currently
   // fail, so they can be shown under the field. Empty = password is OK.
   const [passwordErrors, setPasswordErrors] = useState([]);
+  // True from the moment "Continue with Google" is pressed until the
+  // browser leaves this page, so the button stops looking clickable.
+  const [googleStarting, setGoogleStarting] = useState(false);
 
   // --- CURRENT handleSubmit: same as original, plus a password check
   // inserted before setLoading/setTimeout run.
@@ -71,9 +74,23 @@ export default function RegisterPage() {
 
         <div className="or-divider"><span /> <em>OR</em> <span /></div>
 
-        <button type="button" className="google-button" onClick={() => alert("Connect Google OAuth here") }>
+        {/* Same route as the login page: /api/auth/google creates the
+            account on first sign-in, so there is no separate "sign up
+            with Google" flow. A full navigation, NOT fetch() — the
+            browser itself has to follow the 302 to accounts.google.com. */}
+        <button
+          type="button"
+          className="google-button"
+          disabled={googleStarting || loading}
+          onClick={() => {
+            setGoogleStarting(true);
+            window.location.assign(
+              new URL("/api/auth/google", window.location.origin).toString()
+            );
+          }}
+        >
           <span className="google-g">G</span>
-          Continue with Google
+          {googleStarting ? "Connecting to Google..." : "Continue with Google"}
         </button>
 
         <p className="switch-text">Already initiated? <Link href="/login">Sign in instead</Link></p>

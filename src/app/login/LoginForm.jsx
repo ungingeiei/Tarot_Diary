@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AuthField } from "../../components/AuthField";
+import CheckInReward from "../../components/CheckInReward";
 import { BrandMark, TarotCard } from "../../components/TarotVisual";
 import { signIn } from "../../lib/auth";
 
@@ -26,6 +27,9 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
   // state during the hand-off to accounts.google.com.
   const [googleStarting, setGoogleStarting] = useState(false);
   const [googleReturnError, setGoogleReturnError] = useState("");
+  // Signed in for real; the daily-reward modal now stands between the
+  // user and the home page, for both the password and the Google path.
+  const [showReward, setShowReward] = useState(false);
 
   // /api/auth/google/callback sends the browser back to this page with
   // ?google=success (cookie already set) or ?error=<code>. Both are
@@ -56,7 +60,7 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
         const user = data.user || {};
         if (cancelled) return;
         signIn({ name: user.name || "Seeker", email: user.email || "" });
-        router.replace("/");
+        setShowReward(true);
       } catch (err) {
         if (cancelled) return;
         setGoogleReturnError(err.message || "Google sign-in failed. Please try again.");
@@ -144,7 +148,7 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
         name: user.name || email.split("@")[0] || "Seeker",
         email: user.email || email,
       });
-      router.push("/");
+      setShowReward(true);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
@@ -223,6 +227,8 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
         </div>
         <Footer />
       </section>
+
+      {showReward && <CheckInReward onCollect={() => router.push("/")} />}
     </main>
   );
 }
