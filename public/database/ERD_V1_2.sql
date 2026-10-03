@@ -3,12 +3,13 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 	`f_name` VARCHAR(255) NOT NULL,
 	`email` VARCHAR(255) NOT NULL,
 	`pwd` VARCHAR(255) NOT NULL,
+	`role` VARCHAR(20) NOT NULL DEFAULT 'user',
 	`phone` VARCHAR(255),
 	`dob` DATE,
 	`zodiac` VARCHAR(255),
-	`coin` INTEGER NOT NULL,
+	`coin` INTEGER NOT NULL DEFAULT 50,
 	`last_login_date` DATE NOT NULL,
-	`streak` INTEGER NOT NULL,
+	`streak` INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`id`)
 );
 
