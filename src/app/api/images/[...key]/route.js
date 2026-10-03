@@ -13,17 +13,30 @@
 
 import { getImage, getS3 } from "@/lib/storage";
 
-// Only keys this app writes, i.e. cards/<generated name>. Anything else
-// is refused rather than passed to the bucket, so a crafted path cannot
-// be used to probe for other objects in it.
-const ALLOWED_KEY = /^cards\/[A-Za-z0-9._-]+$/;
+// Only the two prefixes this app writes:
+//   cards/<generated name>   uploaded card art
+//   assets/<path>            the images from public/, pushed up by
+//                            scripts/upload-assets.mjs
+// Anything else is refused rather than passed to the bucket, so a
+// crafted path cannot be used to probe for other objects in it. Each
+// segment is checked on its own, which is what rules out ".." and any
+// attempt to climb out of those prefixes.
+const PREFIXES = ["cards", "assets"];
+const SEGMENT = /^[A-Za-z0-9._-]+$/;
+
+function isAllowed(key) {
+  const parts = key.split("/");
+  if (parts.length < 2) return false;
+  if (!PREFIXES.includes(parts[0])) return false;
+  return parts.slice(1).every((part) => part !== ".." && SEGMENT.test(part));
+}
 
 export async function GET(request, { params }) {
   try {
     const { key: segments } = await params;
     const key = (segments || []).join("/");
 
-    if (!ALLOWED_KEY.test(key)) {
+    if (!isAllowed(key)) {
       return new Response("Not found", { status: 404 });
     }
     if (!getS3()) {

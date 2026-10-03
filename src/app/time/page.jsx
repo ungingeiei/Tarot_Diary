@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
+import { asset } from "@/lib/assets";
 
 const READING_PERIODS = [
   { key: "daily", label: "DAILY" },
@@ -22,7 +23,7 @@ export default function ReadingPeriodPage() {
           <h1 className="reading-period-title">
             <div className="choose-line">
               <span className="title-choose">Choose</span>
-              <img src="/time/line-timepage.svg" alt="line" />
+              <img src={asset("time/line-timepage.svg")} alt="line" />
             </div>
             <span className="title-period">
               A Time Period
@@ -40,7 +41,7 @@ export default function ReadingPeriodPage() {
           <div className="reading-period-item" key={period.key}>
             <div className="reading-period-card">
               <img
-                src={`/time/${period.key}reading.svg`}
+                src={asset(`time/${period.key}reading.svg`)}
                 alt={`${period.label} illustration`}
                 className="reading-period-image" />
 

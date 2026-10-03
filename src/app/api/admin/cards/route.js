@@ -17,6 +17,7 @@
 
 import db from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { deleteImage, keyFromImageUrl } from "@/lib/storage";
 
 // label -> (scope, topic) in the database
 const TOPICS = {
@@ -61,6 +62,31 @@ async function requireAdmin() {
 
 function badRequest(message) {
   return Response.json({ success: false, message }, { status: 400 });
+}
+
+/**
+ * Removes an uploaded image that nothing points at any more.
+ *
+ * Called after a card's picture is replaced, and after a card is
+ * deleted. Checked against `cards` first because the same upload could
+ * have been set on a second card by hand, and a storage failure is
+ * swallowed: an image left behind costs a little space, while a thrown
+ * error here would fail a write that has already happened.
+ */
+async function dropImageIfUnused(url, exceptCardId = 0) {
+  const key = keyFromImageUrl(url);
+  if (!key) return; // an external link, e.g. the seeded Wikimedia deck
+
+  try {
+    const [used] = await db.execute(
+      "SELECT id FROM cards WHERE pict = ? AND id <> ? LIMIT 1",
+      [url, exceptCardId]
+    );
+    if (used.length > 0) return;
+    await deleteImage(key);
+  } catch (err) {
+    console.error("Could not remove unused image", key, err);
+  }
 }
 
 /** Validates the four fields every write shares. */
@@ -118,6 +144,7 @@ export async function POST(request) {
   const { error } = await requireAdmin();
   if (error) return error;
 
+  let connection;
   try {
     const parsed = readBody(await request.json().catch(() => ({})));
     if (parsed.error) return parsed.error;
@@ -126,42 +153,79 @@ export async function POST(request) {
     const kind = toKind(name);
     if (!kind) return badRequest("Card name must contain letters or numbers");
 
+    // The card row and its reading are written together or not at all:
+    // the duplicate check below comes AFTER the card may already have
+    // been created or had its picture swapped, and without a transaction
+    // a rejected add would leave those changes behind.
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
     // A card already in the deck gains a reading rather than a duplicate
     // row — adding "The Fool / Career" must not create a second Fool.
-    const [existing] = await db.execute("SELECT id FROM cards WHERE kind = ? LIMIT 1", [kind]);
+    //
+    // Matched on the NAME as well as the slug. The seeded deck's slugs
+    // came from its source data ("fool", "high_priestess"), which is not
+    // what toKind() derives from the display name ("the_fool"), so
+    // matching on the slug alone quietly created a duplicate card for
+    // every seeded card an admin added a reading to.
+    const [existing] = await connection.execute(
+      "SELECT id, pict FROM cards WHERE name = ? OR kind = ? LIMIT 1",
+      [name, kind]
+    );
     let cardId;
+    let replacedImage = null;
+
     if (existing.length > 0) {
       cardId = existing[0].id;
-      if (image) await db.execute("UPDATE cards SET pict = ? WHERE id = ?", [image, cardId]);
+      if (image && existing[0].pict !== image) {
+        await connection.execute("UPDATE cards SET pict = ? WHERE id = ?", [image, cardId]);
+        replacedImage = existing[0].pict;
+      }
     } else {
-      const [res] = await db.execute(
+      const [res] = await connection.execute(
         "INSERT INTO cards (kind, name, pict, pred, adv) VALUES (?, ?, ?, '', NULL)",
         [kind, name, image || ""]
       );
       cardId = res.insertId;
     }
 
-    const [clash] = await db.execute(
+    const [clash] = await connection.execute(
       "SELECT id FROM card_meanings WHERE card_id = ? AND scope = ? AND topic = ? LIMIT 1",
       [cardId, scope, topic]
     );
     if (clash.length > 0) {
+      await connection.rollback();
       return Response.json(
         { success: false, message: `${name} already has a ${LABELS[topic]} reading` },
         { status: 409 }
       );
     }
 
-    const [res] = await db.execute(
+    const [res] = await connection.execute(
       `INSERT INTO card_meanings (card_id, scope, topic, summary, advice)
        VALUES (?, ?, ?, ?, ?)`,
       [cardId, scope, topic, prediction, advice]
     );
 
+    await connection.commit();
+
+    // Only once the swap is committed — rolling back would have put the
+    // old picture back in use.
+    if (replacedImage) await dropImageIfUnused(replacedImage, cardId);
+
     return Response.json({ success: true, id: res.insertId });
   } catch (err) {
+    if (connection) await connection.rollback().catch(() => {});
+    if (err.code === "ER_DUP_ENTRY") {
+      return Response.json(
+        { success: false, message: "Another card already uses that name" },
+        { status: 409 }
+      );
+    }
     console.error("Admin cards POST error:", err);
     return Response.json({ success: false, message: "Something went wrong" }, { status: 500 });
+  } finally {
+    if (connection) connection.release();
   }
 }
 
@@ -169,6 +233,7 @@ export async function PUT(request) {
   const { error } = await requireAdmin();
   if (error) return error;
 
+  let connection;
   try {
     const body = await request.json().catch(() => ({}));
     const parsed = readBody(body);
@@ -178,24 +243,62 @@ export async function PUT(request) {
     const id = body.id;
     if (!id) return badRequest("Missing id");
 
-    const [rows] = await db.execute("SELECT card_id FROM card_meanings WHERE id = ? LIMIT 1", [id]);
+    // The card and the reading change together. Without this, moving a
+    // reading to a category the card already has rejected the request
+    // AFTER the rename had been written, leaving the card renamed by a
+    // call that answered 409.
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    const [rows] = await connection.execute(
+      "SELECT card_id FROM card_meanings WHERE id = ? LIMIT 1",
+      [id]
+    );
     if (rows.length === 0) {
+      await connection.rollback();
       return Response.json({ success: false, message: "Not found" }, { status: 404 });
     }
     const cardId = rows[0].card_id;
 
     // Renaming here renames the card everywhere it appears, which is
     // the point: the name belongs to the card, not to this reading.
-    await db.execute("UPDATE cards SET name = ?, kind = ? WHERE id = ?", [name, toKind(name), cardId]);
-    if (image) await db.execute("UPDATE cards SET pict = ? WHERE id = ?", [image, cardId]);
+    //
+    // `kind` is deliberately left alone. It is the card's identifier —
+    // /api/cards hands it to the browser and /api/diary looks saves up by
+    // it — so rewriting it on every edit would churn an id for the sake
+    // of a display name, and would have renamed the seeded slugs the
+    // first time anyone corrected a typo.
+    await connection.execute(
+      "UPDATE cards SET name = ? WHERE id = ?",
+      [name, cardId]
+    );
 
-    await db.execute(
+    let replacedImage = null;
+    if (image) {
+      const [[before]] = await connection.execute(
+        "SELECT pict FROM cards WHERE id = ?",
+        [cardId]
+      );
+      if (before?.pict !== image) {
+        await connection.execute("UPDATE cards SET pict = ? WHERE id = ?", [image, cardId]);
+        replacedImage = before?.pict || null;
+      }
+    }
+
+    await connection.execute(
       "UPDATE card_meanings SET scope = ?, topic = ?, summary = ?, advice = ? WHERE id = ?",
       [scope, topic, prediction, advice, id]
     );
 
+    await connection.commit();
+
+    // Only once the swap is committed — a rollback would have put the old
+    // picture back in use.
+    if (replacedImage) await dropImageIfUnused(replacedImage, cardId);
+
     return Response.json({ success: true });
   } catch (err) {
+    if (connection) await connection.rollback().catch(() => {});
     if (err.code === "ER_DUP_ENTRY") {
       return Response.json(
         { success: false, message: "Another card already uses that name or category" },
@@ -204,6 +307,8 @@ export async function PUT(request) {
     }
     console.error("Admin cards PUT error:", err);
     return Response.json({ success: false, message: "Something went wrong" }, { status: 500 });
+  } finally {
+    if (connection) connection.release();
   }
 }
 
@@ -231,8 +336,12 @@ export async function DELETE(request) {
       [cardId]
     );
     if (left[0].n === 0) {
+      const [[card]] = await db.execute("SELECT pict FROM cards WHERE id = ?", [cardId]);
       try {
         await db.execute("DELETE FROM cards WHERE id = ?", [cardId]);
+        // Only once the row is really gone — a card kept alive by a diary
+        // entry still needs its picture.
+        await dropImageIfUnused(card?.pict, cardId);
       } catch (err) {
         if (err.code !== "ER_ROW_IS_REFERENCED_2") throw err;
       }

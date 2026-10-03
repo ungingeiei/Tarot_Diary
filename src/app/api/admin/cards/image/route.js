@@ -8,11 +8,14 @@
  * files on someone else's storage bill.
  */
 
+import db from "@/lib/db";
 import { getSession } from "@/lib/session";
 import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_BYTES,
+  deleteImage,
   getS3,
+  keyFromImageUrl,
   putImage,
 } from "@/lib/storage";
 
@@ -94,5 +97,48 @@ function looksLikeImage(buf, type) {
              buf.subarray(8, 12).toString("ascii") === "WEBP";
     default:
       return false;
+  }
+}
+
+/**
+ * DELETE /api/admin/cards/image?url=/api/images/cards/<name>
+ *
+ * Throws away an upload that was never saved — the admin picked a file,
+ * which uploads straight away, and then chose a different one or closed
+ * the form. Without this those files would sit in the bucket forever
+ * with nothing pointing at them.
+ *
+ * Refuses anything a card is actually using, so this cannot be turned
+ * into a way to strip pictures off the deck.
+ */
+export async function DELETE(request) {
+  try {
+    const session = await getSession();
+    if (!session) {
+      return Response.json({ success: false, message: "Not signed in" }, { status: 401 });
+    }
+    if (session.role !== "admin") {
+      return Response.json({ success: false, message: "Admins only" }, { status: 403 });
+    }
+
+    const url = new URL(request.url).searchParams.get("url");
+    const key = keyFromImageUrl(url);
+    if (!key) {
+      return Response.json({ success: false, message: "Not an uploaded image" }, { status: 400 });
+    }
+
+    const [used] = await db.execute("SELECT id FROM cards WHERE pict = ? LIMIT 1", [url]);
+    if (used.length > 0) {
+      return Response.json(
+        { success: false, message: "That image is in use by a card" },
+        { status: 409 }
+      );
+    }
+
+    if (getS3()) await deleteImage(key);
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error("Image delete error:", error);
+    return Response.json({ success: false, message: "Could not delete the image" }, { status: 500 });
   }
 }

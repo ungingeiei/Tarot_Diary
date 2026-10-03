@@ -95,3 +95,17 @@ export async function deleteImage(key) {
   if (!s3) return;
   await s3.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
 }
+
+/**
+ * The storage key behind one of our own image URLs, or null.
+ *
+ * Guards every delete: the seeded deck points at Wikimedia, and a card
+ * whose picture is a plain external link has nothing of ours to remove.
+ * The `cards/` prefix is also what stops a crafted value in `pict` from
+ * naming some other object in the bucket.
+ */
+export function keyFromImageUrl(url) {
+  if (typeof url !== "string") return null;
+  const match = /^\/api\/images\/(cards\/[A-Za-z0-9._-]+)$/.exec(url.trim());
+  return match ? match[1] : null;
+}

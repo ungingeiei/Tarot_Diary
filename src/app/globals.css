@@ -1342,9 +1342,11 @@ nav a:hover {
   color: rgba(201, 169, 110, 0.65);
 }
 
-.profile-edit-form input:focus {
+.profile-edit-form input:focus,
+.profile-edit-form select:focus {
   border-bottom-color: var(--gold);
 }
+
 
 /* Buttons */
 
@@ -2933,4 +2935,302 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
         height: 320px;
         transform: scale(.72);
     }
+}
+
+/* =========================Date field=========================
+   Our own calendar, so it can carry the same dark panel and gold the
+   rest of the app uses. The browser's <input type="date"> picker is
+   drawn by the OS and cannot be themed at all. */
+
+.date-field {
+    position: relative;
+    width: 100%;
+}
+
+/* Matches the underlined text fields it sits beside. */
+.date-field-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.55);
+    background: transparent;
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.date-field-trigger.is-empty {
+    color: rgba(201, 169, 110, 0.65);
+}
+
+.date-field-trigger svg {
+    flex-shrink: 0;
+    color: rgba(201, 169, 110, 0.9);
+}
+
+.date-field-trigger:hover,
+.date-field-trigger:focus-visible {
+    border-bottom-color: var(--gold);
+    outline: none;
+}
+
+/* ---------- The panel ---------- */
+
+.date-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    z-index: 40;
+    width: 322px;
+    max-width: 92vw;
+    padding: 14px;
+    background: #12111c;
+    border: 1px solid rgba(201, 169, 110, 0.45);
+    border-radius: 10px;
+    box-shadow: 0 28px 70px rgba(0, 0, 0, 0.6);
+}
+
+.date-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.date-nav {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(201, 169, 110, 0.35);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--gold);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.date-nav:hover {
+    background: rgba(201, 169, 110, 0.12);
+    border-color: var(--gold);
+}
+
+.date-selects {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+}
+
+.date-weekdays,
+.date-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.date-weekdays {
+    margin-bottom: 4px;
+}
+
+.date-weekdays span {
+    text-align: center;
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(201, 169, 110, 0.7);
+}
+
+.date-cell {
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(232, 227, 216, 0.85);
+    font-family: inherit;
+    font-size: 13.5px;
+    cursor: pointer;
+}
+
+.date-cell.is-blank {
+    cursor: default;
+}
+
+.date-cell:not(.is-blank):hover {
+    background: rgba(201, 169, 110, 0.14);
+}
+
+/* Today is outlined, the chosen day is filled — so the two never read as
+   the same thing. */
+.date-cell.is-today {
+    border-color: rgba(201, 169, 110, 0.55);
+}
+
+.date-cell.is-selected {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #14121b;
+    font-weight: 600;
+}
+
+.date-panel-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(201, 169, 110, 0.2);
+}
+
+.date-clear {
+    border: none;
+    background: transparent;
+    color: rgba(201, 169, 110, 0.85);
+    font-family: inherit;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.date-clear:hover {
+    color: var(--gold);
+}
+
+/* =========================Select field=========================
+   Our own dropdown. A native <select> can have its closed state
+   restyled, but the list it opens is drawn by the operating system —
+   a light grey sheet that ignores the page entirely. */
+
+.select-field {
+    position: relative;
+    width: 100%;
+}
+
+/* Matches the underlined text fields and the date trigger beside it. */
+.select-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 1px solid rgba(201, 169, 110, 0.55);
+    background: transparent;
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.select-trigger.is-empty {
+    color: rgba(201, 169, 110, 0.65);
+}
+
+.select-trigger:hover,
+.select-trigger:focus-visible {
+    border-bottom-color: var(--gold);
+    outline: none;
+}
+
+.select-value {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.select-caret {
+    flex-shrink: 0;
+    width: 0;
+    height: 0;
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5px solid rgba(201, 169, 110, 0.9);
+}
+
+.select-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 50;
+    width: 100%;
+    min-width: 140px;
+    /* Long lists — a hundred-odd years — scroll rather than running off
+       the bottom of the page. */
+    max-height: 244px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 5px;
+    list-style: none;
+    background: #12111c;
+    border: 1px solid rgba(201, 169, 110, 0.45);
+    border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.select-option {
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(232, 227, 216, 0.85);
+    font-family: inherit;
+    font-size: 14.5px;
+    letter-spacing: 0.3px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.select-option:hover {
+    background: rgba(201, 169, 110, 0.14);
+    color: var(--cream);
+}
+
+.select-option.is-selected {
+    background: var(--gold);
+    color: #14121b;
+    font-weight: 600;
+}
+
+/* ---------- Compact: the month and year inside the calendar ---------- */
+
+.select-field.is-compact .select-trigger {
+    padding: 5px 8px;
+    border: 1px solid rgba(201, 169, 110, 0.3);
+    border-radius: 6px;
+    background: #0d0d15;
+    font-size: 13.5px;
+}
+
+.select-field.is-compact .select-trigger:hover,
+.select-field.is-compact .select-trigger:focus-visible {
+    border-color: var(--gold);
+}
+
+.select-field.is-compact .select-option {
+    padding: 6px 9px;
+    font-size: 13px;
+}
+
+/* The month needs the room: "September" was being clipped when both
+   lists shared the width evenly. */
+.date-selects .select-field:first-child {
+    flex: 1.45;
+}
+
+.date-selects .select-field:last-child {
+    flex: 1;
 }

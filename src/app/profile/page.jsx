@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { NavMenu } from "../../components/NavMenu";
 import { MenuIcon, CloseXIcon, TarotCard } from "../../components/TarotVisual";
+import { DateField } from "../../components/DateField";
+import { SelectField } from "../../components/SelectField";
 
 function ProfileHeader() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -33,6 +35,14 @@ function formatBorn(dob) {
     if (Number.isNaN(date.getTime())) return "";
     return `${d} ${date.toLocaleString("en-US", { month: "long" }).toUpperCase()} ${y}`;
 }
+
+// In the order the signs run through the year, which is how someone
+// looking for their own expects to find it.
+const ZODIAC_SIGNS = [
+    "Aries", "Taurus", "Gemini", "Cancer",
+    "Leo", "Virgo", "Libra", "Scorpio",
+    "Sagittarius", "Capricorn", "Aquarius", "Pisces",
+];
 
 const EMPTY = {
     firstName: "", lastName: "", email: "",
@@ -179,21 +189,31 @@ export default function ProfilePage() {
                                     placeholder="Phone"
                                 />
 
-                                {/* A date input, not free text: the column is a
-                                    DATE, and "14 NOVEMBER 1998" typed by hand
-                                    would not survive the round trip. */}
-                                <input
-                                    type="date"
+                                {/* Our own calendar rather than <input type="date">:
+                                    the browser's picker is drawn by the OS as a
+                                    white panel that cannot be themed, and it had
+                                    no way to reach a birth year without clicking
+                                    the month arrow a few hundred times. */}
+                                <DateField
                                     value={draft.dob}
-                                    onChange={setField("dob")}
+                                    onChange={(dob) =>
+                                        setDraft((current) => ({ ...current, dob }))
+                                    }
                                     placeholder="Born"
                                 />
 
-                                <input
-                                    type="text"
+                                {/* A fixed list, not free text: the twelve
+                                    signs are a closed set, and typing them by
+                                    hand only produced spellings the rest of
+                                    the app would have to guess at. */}
+                                <SelectField
                                     value={draft.zodiac}
-                                    onChange={setField("zodiac")}
+                                    onChange={(zodiac) =>
+                                        setDraft((current) => ({ ...current, zodiac }))
+                                    }
+                                    options={ZODIAC_SIGNS}
                                     placeholder="Zodiac"
+                                    ariaLabel="Zodiac"
                                 />
 
                             </div>

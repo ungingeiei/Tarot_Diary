@@ -1,21 +1,22 @@
 import { TarotCard } from "@/components/TarotVisual";
+import { asset } from "@/lib/assets";
 
 export default function About() {
     return (
         <main className="about-page">
 
             <nav>
-                <img src="/logo.svg" alt="Tarot Diary Logo" />
+                <img src={asset("logo.svg")} alt="Tarot Diary Logo" />
             </nav>
 
             <section className="about-top">
                 <div className="about-content">
-                    <img src="/about/about-tarot.svg" alt="about-tarot" />
+                    <img src={asset("about/about-tarot.svg")} alt="about-tarot" />
                     <h1>
                         <span>Unveil What</span>
                         <span>Lies Within</span>
                     </h1>
-                    <img src="/about/line.svg" alt="line" />
+                    <img src={asset("about/line.svg")} alt="line" />
 
                     <p>
                         Ancient wisdom, decoded for the modern seeker.
@@ -24,7 +25,7 @@ export default function About() {
                 </div>
 
                 <div className="about-card">
-                    <img src="/about/tarot-card-about.svg" alt="The High Priestess" />
+                    <img src={asset("about/tarot-card-about.svg")} alt="The High Priestess" />
                 </div>
 
             </section>

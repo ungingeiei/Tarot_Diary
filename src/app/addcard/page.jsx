@@ -74,7 +74,10 @@ export default function ManageCardPage() {
         setTimeOrCategory("Daily");
     };
     // =====================================CANCEL ADD CARD=====================================
-    const handleCancel = () => {
+    // `keepImage` is set by a successful save: the picture belongs to a
+    // card by then, and must not be deleted along with the form state.
+    const handleCancel = ({ keepImage = false } = {}) => {
+        if (!keepImage) discardUpload(image);
         setCardName("");
         setPrediction("");
         setShowAddCard(false);
@@ -86,6 +89,20 @@ export default function ManageCardPage() {
     // =====================================SAVE NEW CARD=====================================
 
     const [uploading, setUploading] = useState(false);
+
+    // An image is uploaded the moment it is chosen, before the card is
+    // saved. If the admin then picks a different file or closes the form,
+    // that first upload has nothing pointing at it and is thrown away.
+    const discardUpload = async (url) => {
+        if (!url) return;
+        try {
+            await fetch(`/api/admin/cards/image?url=${encodeURIComponent(url)}`, {
+                method: "DELETE",
+            });
+        } catch {
+            // Leaving a stray file behind is better than blocking the form.
+        }
+    };
 
     // Uploading on change rather than on submit keeps the save request
     // plain JSON, and shows the admin straight away whether the image
@@ -99,6 +116,8 @@ export default function ManageCardPage() {
 
         setUploading(true);
         setLoadError("");
+        // Whatever was uploaded a moment ago is now being replaced.
+        const replaced = image;
         try {
             const body = new FormData();
             body.append("file", file);
@@ -111,6 +130,7 @@ export default function ManageCardPage() {
                 return;
             }
             setImage(data.url);
+            if (replaced && replaced !== data.url) discardUpload(replaced);
         } catch {
             setLoadError("Could not upload the image.");
             setImage("");
@@ -153,7 +173,7 @@ export default function ManageCardPage() {
             // decides the id, and may have attached this reading to a
             // card that already existed.
             await loadCards();
-            handleCancel();
+            handleCancel({ keepImage: true });
         } finally {
             setBusy(false);
         }
