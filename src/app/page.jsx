@@ -1,4 +1,20 @@
+"use client";
+import { useEffect, useState } from "react";
+import { isSignedIn, signOut } from "@/lib/auth";
+
 export default function Home() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  const handleLogout = () => {
+    signOut();
+    setLoggedIn(false);
+  };
+
+  useEffect(() => {
+    const result = isSignedIn();
+    setLoggedIn(result);
+  }, []);
+
   return (
     <main>
       {/* Navbar */}
@@ -7,8 +23,26 @@ export default function Home() {
 
         <div>
           <a href="/">HOME</a> |
-          <a href="/about">ABOUT</a>|
-          <a href="/login">LOGIN</a>
+          <a href="/about">ABOUT</a> |
+
+          {loggedIn ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                font: "inherit",
+                color: "inherit",
+              }}
+            >
+              LOGOUT
+            </button>
+          ) : (
+            <a href="/login">LOGIN</a>
+          )}
         </div>
       </nav>
 
