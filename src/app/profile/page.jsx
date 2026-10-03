@@ -1,8 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { NavMenu } from "../../components/NavMenu";
 import { MenuIcon, CloseXIcon, TarotCard } from "../../components/TarotVisual";
+
+/**
+ * User profile page  (/profile)
+ * -----------------------------
+ * Backed by the API instead of hardcoded text:
+ *   - GET   /api/profile   loads the signed-in account
+ *   - PATCH /api/profile   saves the edit form
+ * Signed-out visitors are sent to /login.
+ */
+
+const MONTHS = [
+    "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+    "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+];
+
+// "1998-11-14" -> "14 NOVEMBER 1998"
+function formatBorn(iso) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    if (!match) return "—";
+    return `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]} ${match[1]}`;
+}
 
 function ProfileHeader() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -25,90 +47,119 @@ function ProfileHeader() {
     );
 }
 
-// "14 NOVEMBER 1998" for display, from the YYYY-MM-DD the API returns.
-function formatBorn(dob) {
-    if (!dob) return "";
-    const [y, m, d] = dob.split("-").map(Number);
-    const date = new Date(y, m - 1, d);
-    if (Number.isNaN(date.getTime())) return "";
-    return `${d} ${date.toLocaleString("en-US", { month: "long" }).toUpperCase()} ${y}`;
-}
-
-const EMPTY = {
-    firstName: "", lastName: "", email: "",
-    phone: "", dob: "", zodiac: "",
-};
-
 export default function ProfilePage() {
+    const router = useRouter();
+    const [profile, setProfile] = useState(null); // null until loaded
     const [isEditing, setIsEditing] = useState(false);
-    // `profile` is what the server last confirmed; `draft` is what the
-    // user is typing. Keeping them apart means CANCEL can discard edits
-    // without another round trip.
-    const [profile, setProfile] = useState(EMPTY);
-    const [draft, setDraft] = useState(EMPTY);
-    const [loading, setLoading] = useState(true);
+    const [form, setForm] = useState({});
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
+    // ---- load the profile (signed-out visitors go to /login) ----
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
                 const res = await fetch("/api/profile", { cache: "no-store" });
-                const data = await res.json().catch(() => ({}));
                 if (cancelled) return;
+                if (res.status === 401) {
+                    router.replace("/login");
+                    return;
+                }
+                const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data.success) {
-                    setError(res.status === 401
-                        ? "Please sign in to see your profile."
-                        : "Could not load your profile.");
+                    setError(data.message || "Could not load your profile");
                     return;
                 }
                 setProfile(data.profile);
-                setDraft(data.profile);
             } catch {
-                if (!cancelled) setError("Could not load your profile.");
-            } finally {
-                if (!cancelled) setLoading(false);
+                if (!cancelled) setError("Could not load your profile");
             }
         })();
-        return () => { cancelled = true; };
-    }, []);
+        return () => {
+            cancelled = true;
+        };
+    }, [router]);
 
     const startEditing = () => {
-        setDraft(profile);
+        setForm({
+            fName: profile.fName,
+            lName: profile.lName,
+            email: profile.email,
+            phone: profile.phone,
+            dob: profile.dob,
+            zodiac: profile.zodiac,
+        });
         setError("");
         setIsEditing(true);
     };
 
-    const setField = (key) => (event) =>
-        setDraft((current) => ({ ...current, [key]: event.target.value }));
+    const cancelEditing = () => {
+        setIsEditing(false);
+        setError("");
+    };
+
+    const setField = (name) => (event) =>
+        setForm((current) => ({ ...current, [name]: event.target.value }));
 
     const handleSave = async () => {
+        if (saving) return;
         setSaving(true);
         setError("");
+
+        const payload = {
+            fName: form.fName,
+            lName: form.lName,
+            phone: form.phone,
+            dob: form.dob,
+        };
+        // Google accounts can't change their email.
+        if (!profile.hasGoogle) payload.email = form.email;
+
+        // Zodiac: send what was typed. If it was left blank (or still holds
+        // the old sign after the date changed), leave it out so the server
+        // works the sign out from the new date of birth.
+        const typedZodiac = (form.zodiac || "").trim();
+        const dobChanged = form.dob !== profile.dob;
+        const zodiacChanged = typedZodiac.toUpperCase() !== (profile.zodiac || "").toUpperCase();
+        if (typedZodiac && (zodiacChanged || !dobChanged)) {
+            payload.zodiac = typedZodiac;
+        } else if (!typedZodiac && !form.dob) {
+            payload.zodiac = ""; // no date, no sign: clear it
+        }
+
         try {
             const res = await fetch("/api/profile", {
-                method: "PUT",
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(draft),
+                body: JSON.stringify(payload),
             });
             const data = await res.json().catch(() => ({}));
-            if (!res.ok || !data.success) {
-                // e.g. the email is taken by someone else
-                setError(data.message || "Could not save your profile.");
+            if (res.status === 401) {
+                router.replace("/login");
                 return;
             }
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || "Could not save your profile");
+            }
             setProfile(data.profile);
-            setDraft(data.profile);
             setIsEditing(false);
-        } catch {
-            setError("Could not save your profile.");
+        } catch (err) {
+            setError(err.message || "Something went wrong. Please try again.");
         } finally {
             setSaving(false);
         }
     };
 
-    const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
+    // Nothing to show until the server has answered (or sent us elsewhere).
+    if (!profile) {
+        return (
+            <main className="app-page profile-page">
+                <ProfileHeader />
+                {error && <p className="login-error">{error}</p>}
+            </main>
+        );
+    }
 
     return (
         <main className="app-page profile-page">
@@ -145,58 +196,58 @@ export default function ProfilePage() {
                 {/* Right side - User information */}
                 <div className="profile-info">
 
-                    {error && <p className="login-error">{error}</p>}
-
                     {isEditing ? (
                         <>
                             <div className="profile-edit-form">
 
                                 <input
                                     type="text"
-                                    value={draft.firstName}
-                                    onChange={setField("firstName")}
+                                    value={form.fName}
+                                    onChange={setField("fName")}
                                     placeholder="First Name"
                                 />
 
                                 <input
                                     type="text"
-                                    value={draft.lastName}
-                                    onChange={setField("lastName")}
+                                    value={form.lName}
+                                    onChange={setField("lName")}
                                     placeholder="Last Name"
                                 />
 
                                 <input
                                     type="email"
-                                    value={draft.email}
+                                    value={form.email}
                                     onChange={setField("email")}
                                     placeholder="Email"
+                                    disabled={profile.hasGoogle}
+                                    title={profile.hasGoogle ? "The email of a Google account can't be changed here" : undefined}
                                 />
 
                                 <input
                                     type="tel"
-                                    value={draft.phone}
+                                    value={form.phone}
                                     onChange={setField("phone")}
                                     placeholder="Phone"
                                 />
 
-                                {/* A date input, not free text: the column is a
-                                    DATE, and "14 NOVEMBER 1998" typed by hand
-                                    would not survive the round trip. */}
                                 <input
                                     type="date"
-                                    value={draft.dob}
+                                    value={form.dob}
                                     onChange={setField("dob")}
                                     placeholder="Born"
+                                    max={new Date().toISOString().slice(0, 10)}
                                 />
 
                                 <input
                                     type="text"
-                                    value={draft.zodiac}
+                                    value={form.zodiac}
                                     onChange={setField("zodiac")}
-                                    placeholder="Zodiac"
+                                    placeholder="Zodiac (filled in from your birth date)"
                                 />
 
                             </div>
+
+                            {error && <p className="login-error">{error}</p>}
 
                             <div className="profile-edit-actions">
 
@@ -212,7 +263,7 @@ export default function ProfilePage() {
                                 <button
                                     type="button"
                                     className="profile-cancel-btn"
-                                    onClick={() => { setDraft(profile); setError(""); setIsEditing(false); }}
+                                    onClick={cancelEditing}
                                     disabled={saving}
                                 >
                                     CANCEL
@@ -223,18 +274,15 @@ export default function ProfilePage() {
                     ) : (
                         <>
                             <h2>
-                                {loading
-                                    ? "\u2026"
-                                    : profile.firstName
-                                        ? <>{profile.firstName}<br />{profile.lastName}</>
-                                        : "Your profile"}
+                                {profile.fName}
+                                {profile.lName && (<><br />{profile.lName}</>)}
                             </h2>
 
                             <div className="profile-detail">
                                 <span className="profile-label">EMAIL</span>
                                 <span className="profile-separator"></span>
                                 <span className="profile-value">
-                                    {profile.email || "\u2014"}
+                                    {profile.email}
                                 </span>
                             </div>
 
@@ -242,7 +290,7 @@ export default function ProfilePage() {
                                 <span className="profile-label">PHONE</span>
                                 <span className="profile-separator"></span>
                                 <span className="profile-value">
-                                    {profile.phone || "\u2014"}
+                                    {profile.phone || "—"}
                                 </span>
                             </div>
 
@@ -250,7 +298,7 @@ export default function ProfilePage() {
                                 <span className="profile-label">BORN</span>
                                 <span className="profile-separator"></span>
                                 <span className="profile-value">
-                                    {formatBorn(profile.dob) || "\u2014"}
+                                    {formatBorn(profile.dob)}
                                 </span>
                             </div>
 
@@ -258,7 +306,7 @@ export default function ProfilePage() {
                                 <span className="profile-label">ZODIAC</span>
                                 <span className="profile-separator"></span>
                                 <span className="profile-value">
-                                    {profile.zodiac ? profile.zodiac.toUpperCase() : "\u2014"}
+                                    {profile.zodiac || "—"}
                                 </span>
                             </div>
 
@@ -266,7 +314,6 @@ export default function ProfilePage() {
                                 type="button"
                                 className="edit-profile-btn"
                                 onClick={startEditing}
-                                disabled={loading || Boolean(error)}
                             >
                                 EDIT PROFILE
                             </button>

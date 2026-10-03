@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS `accounts` (
 	`id` INTEGER NOT NULL AUTO_INCREMENT,
 	`f_name` VARCHAR(255) NOT NULL,
+	`l_name` VARCHAR(255) NOT NULL,
 	`email` VARCHAR(255) NOT NULL,
 	`pwd` VARCHAR(255) NOT NULL,
 	`role` VARCHAR(20) NOT NULL DEFAULT 'user',
@@ -8,7 +9,6 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 	`dob` DATE,
 	`zodiac` VARCHAR(255),
 	`coin` INTEGER NOT NULL DEFAULT 50,
-	`last_login_date` DATE NOT NULL,
 	`streak` INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`id`)
 );

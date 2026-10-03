@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { NavMenu } from "../../components/NavMenu";
 import {
     MenuIcon,
@@ -8,54 +9,56 @@ import {
     TarotCard,
 } from "../../components/TarotVisual";
 
+/**
+ * Card management page  (/addcard)
+ * --------------------------------
+ * Now backed by the admin API instead of local state:
+ *   GET    /api/admin/cards        load the table
+ *   POST   /api/admin/cards        add a card (multipart: includes the image)
+ *   PATCH  /api/admin/cards/:id    edit a card (JSON, or multipart if a new image is chosen)
+ *   DELETE /api/admin/cards/:id    delete a card AND the diary entries saved from it
+ *
+ * Signed-out visitors go to /login, signed-in non-admins to /profile. That
+ * redirect is a convenience — the APIs themselves refuse anyone who is not
+ * an admin in the database.
+ */
+
+const CATEGORY_OPTIONS = [
+    "Daily", "Monthly", "Weekly", "Love", "Health", "Pets", "Finance", "Career",
+];
+const IMAGE_ACCEPT = "image/png,image/jpeg,image/gif,image/webp";
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024; // same limit as the server
+
+// Returns an error message for an unusable file, or "" when it is fine.
+function imageProblem(file) {
+    if (!file) return "";
+    if (file.size > MAX_IMAGE_BYTES) return "Image must be 3 MB or smaller";
+    return "";
+}
 
 export default function ManageCardPage() {
+    const router = useRouter();
+
     const [menuOpen, setMenuOpen] = useState(false);
     const [showAddCard, setShowAddCard] = useState(false);
 
-
-// The deck now comes from `cards` + `card_meanings` through
-// /api/admin/cards. It used to be this one hard-coded Lovers entry,
-// and anything added to it vanished on the next refresh.
+    // =====================================CARD LIST (from the API)=====================================
     const [cards, setCards] = useState([]);
-    const [loadError, setLoadError] = useState("");
-    const [busy, setBusy] = useState(false);
-
-    const loadCards = useCallback(async () => {
-        try {
-            const res = await fetch("/api/admin/cards", { cache: "no-store" });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok || !data.success) {
-                setLoadError(
-                    res.status === 403
-                        ? "This console is for admin accounts only."
-                        : res.status === 401
-                            ? "Please sign in."
-                            : data.message || "Could not load the deck."
-                );
-                setCards([]);
-                return;
-            }
-            setLoadError("");
-            setCards(data.cards);
-        } catch {
-            setLoadError("Could not load the deck.");
-        }
-    }, []);
-
-    useEffect(() => {
-        loadCards();
-    }, [loadCards]);
+    const [loading, setLoading] = useState(true);
+    const [pageError, setPageError] = useState("");
 
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     // =====================================ADD CARD FORM=====================================
     const [cardName, setCardName] = useState("");
     const [prediction, setPrediction] = useState("");
 
     const [advice, setAdvice] = useState("");
-    const [image, setImage] = useState("");
+    const [image, setImage] = useState(null);
     const [timeOrCategory, setTimeOrCategory] = useState("Daily");
+    const [saving, setSaving] = useState(false);
+    const [formError, setFormError] = useState("");
 
     // =====================================EDIT CARD=====================================
     const [editingCardId, setEditingCardId] = useState(null);
@@ -63,6 +66,39 @@ export default function ManageCardPage() {
     const [editPrediction, setEditPrediction] = useState("");
     const [editAdvice, setEditAdvice] = useState("");
     const [editTimeOrCategory, setEditTimeOrCategory] = useState("Daily");
+    const [editImage, setEditImage] = useState(null);
+    const [editSaving, setEditSaving] = useState(false);
+
+    // =====================================LOAD CARDS (+ admin check)=====================================
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await fetch("/api/admin/cards", { cache: "no-store" });
+                if (cancelled) return;
+                if (res.status === 401) {
+                    router.replace("/login");
+                    return;
+                }
+                if (res.status === 403) {
+                    router.replace("/profile");
+                    return;
+                }
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    throw new Error(data.message || "Could not load the cards");
+                }
+                setCards(data.cards);
+            } catch (err) {
+                if (!cancelled) setPageError(err.message || "Could not load the cards");
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [router]);
 
     // =====================================OPEN ADD CARD=====================================
     const handleOpenAddCard = () => {
@@ -70,8 +106,9 @@ export default function ManageCardPage() {
         setPrediction("");
         setShowAddCard(true);
         setAdvice("");
-        setImage("");
+        setImage(null);
         setTimeOrCategory("Daily");
+        setFormError("");
     };
     // =====================================CANCEL ADD CARD=====================================
     const handleCancel = () => {
@@ -79,83 +116,57 @@ export default function ManageCardPage() {
         setPrediction("");
         setShowAddCard(false);
         setAdvice("");
-        setImage("");
+        setImage(null);
         setTimeOrCategory("Daily");
+        setFormError("");
     };
 
     // =====================================SAVE NEW CARD=====================================
 
-    const [uploading, setUploading] = useState(false);
-
-    // Uploading on change rather than on submit keeps the save request
-    // plain JSON, and shows the admin straight away whether the image
-    // was accepted instead of failing after they filled the whole form.
-    const handleImageChange = async (event) => {
-        const file = event.target.files?.[0];
-        if (!file) {
-            setImage("");
-            return;
-        }
-
-        setUploading(true);
-        setLoadError("");
-        try {
-            const body = new FormData();
-            body.append("file", file);
-            const res = await fetch("/api/admin/cards/image", { method: "POST", body });
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok || !data.success) {
-                setLoadError(data.message || "Could not upload the image.");
-                setImage("");
-                event.target.value = "";
-                return;
-            }
-            setImage(data.url);
-        } catch {
-            setLoadError("Could not upload the image.");
-            setImage("");
-        } finally {
-            setUploading(false);
-        }
-    };
-
     const handleSaveCard = async (event) => {
         event.preventDefault();
+        if (saving) return;
 
         if (
             !cardName.trim() ||
             !prediction.trim() ||
             !advice.trim()
         ) {
+            setFormError("Please fill in the card name, prediction and advice");
+            return;
+        }
+        if (!image) {
+            setFormError("Please choose a card image");
+            return;
+        }
+        const problem = imageProblem(image);
+        if (problem) {
+            setFormError(problem);
             return;
         }
 
-        setBusy(true);
+        const body = new FormData();
+        body.set("name", cardName.trim());
+        body.set("category", timeOrCategory);
+        body.set("prediction", prediction.trim());
+        body.set("advice", advice.trim());
+        body.set("image", image);
+
+        setSaving(true);
+        setFormError("");
         try {
-            const res = await fetch("/api/admin/cards", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: cardName.trim(),
-                    prediction: prediction.trim(),
-                    advice: advice.trim(),
-                    category: timeOrCategory,
-                    image,
-                }),
-            });
+            // No Content-Type header: the browser adds the multipart boundary itself.
+            const res = await fetch("/api/admin/cards", { method: "POST", body });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.success) {
-                // e.g. this card already has a reading for that category
-                setLoadError(data.message || "Could not add the card.");
-                return;
+                throw new Error(data.message || "Could not save the card");
             }
-            // Re-read rather than guessing the new row: the server
-            // decides the id, and may have attached this reading to a
-            // card that already existed.
-            await loadCards();
+            setCards((currentCards) => [...currentCards, data.card]);
             handleCancel();
+        } catch (err) {
+            setFormError(err.message || "Something went wrong. Please try again.");
         } finally {
-            setBusy(false);
+            setSaving(false);
         }
     };
 
@@ -166,6 +177,8 @@ export default function ManageCardPage() {
         setEditPrediction(card.prediction || "");
         setEditAdvice(card.advice || "");
         setEditTimeOrCategory(card.category || "Daily");
+        setEditImage(null);
+        setPageError("");
     };
 
     // =====================================CANCEL EDIT=====================================
@@ -175,58 +188,90 @@ export default function ManageCardPage() {
         setEditPrediction("");
         setEditAdvice("");
         setEditTimeOrCategory("Daily");
+        setEditImage(null);
     };
 
     // =====================================SAVE EDIT=====================================
     const handleSaveEdit = async (event, id) => {
         event.preventDefault();
+        if (editSaving) return;
+
         if (
             !editName.trim() ||
             !editPrediction.trim() ||
             !editAdvice.trim()
         ) {
+            setPageError("Card name, prediction and advice can't be empty");
             return;
         }
-        setBusy(true);
-        try {
-            const res = await fetch("/api/admin/cards", {
-                method: "PUT",
+        const problem = imageProblem(editImage);
+        if (problem) {
+            setPageError(problem);
+            return;
+        }
+
+        const fields = {
+            name: editName.trim(),
+            category: editTimeOrCategory,
+            prediction: editPrediction.trim(),
+            advice: editAdvice.trim(),
+        };
+
+        let request;
+        if (editImage) {
+            // A new picture was chosen: send everything as multipart.
+            const body = new FormData();
+            Object.entries(fields).forEach(([key, value]) => body.set(key, value));
+            body.set("image", editImage);
+            request = { method: "PATCH", body };
+        } else {
+            request = {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id,
-                    name: editName.trim(),
-                    prediction: editPrediction.trim(),
-                    advice: editAdvice.trim(),
-                    category: editTimeOrCategory,
-                }),
-            });
+                body: JSON.stringify(fields),
+            };
+        }
+
+        setEditSaving(true);
+        setPageError("");
+        try {
+            const res = await fetch(`/api/admin/cards/${id}`, request);
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.success) {
-                setLoadError(data.message || "Could not save the card.");
-                return;
+                throw new Error(data.message || "Could not save the card");
             }
-            await loadCards();
+            setCards((currentCards) =>
+                currentCards.map((card) => (card.id === id ? data.card : card))
+            );
             handleCancelEdit();
+        } catch (err) {
+            setPageError(err.message || "Something went wrong. Please try again.");
         } finally {
-            setBusy(false);
+            setEditSaving(false);
         }
     };
     // =====================================DELETE CARD=====================================
 
     const handleDeleteCard = async (id) => {
-        setBusy(true);
+        if (deleting) return;
+        setDeleting(true);
+        setPageError("");
         try {
-            const res = await fetch(`/api/admin/cards?id=${encodeURIComponent(id)}`, {
-                method: "DELETE",
-            });
+            const res = await fetch(`/api/admin/cards/${id}`, { method: "DELETE" });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.success) {
-                setLoadError(data.message || "Could not delete the card.");
-                return;
+                throw new Error(data.message || "Could not delete the card");
             }
-            await loadCards();
+            setCards((currentCards) =>
+                currentCards.filter(
+                    (card) => card.id !== id
+                )
+            );
+        } catch (err) {
+            setPageError(err.message || "Something went wrong. Please try again.");
         } finally {
-            setBusy(false);
+            setDeleting(false);
+            setDeleteTarget(null);
         }
     };
     return (
@@ -265,13 +310,6 @@ export default function ManageCardPage() {
                         ADMIN CONSOLE
                     </div>
 
-                    {/* Covers "admins only", a failed save, a dropped
-                        connection — without it the console would just
-                        stop responding to clicks with no reason given. */}
-                    {loadError && (
-                        <p className="login-error">{loadError}</p>
-                    )}
-
                 </div>
 
             </header>
@@ -303,6 +341,9 @@ export default function ManageCardPage() {
                     + ADD CARD
                 </button>
             </section>
+
+            {pageError && <p className="login-error">{pageError}</p>}
+
             {/* =====================================CARD TABLE===================================== */}
             <section className="manage-card-table-wrapper">
                 <table className="manage-card-table">
@@ -317,6 +358,16 @@ export default function ManageCardPage() {
                         </tr>
                     </thead>
                     <tbody>
+                        {loading && (
+                            <tr>
+                                <td colSpan={5}>Loading cards…</td>
+                            </tr>
+                        )}
+                        {!loading && cards.length === 0 && (
+                            <tr>
+                                <td colSpan={5}>No cards yet. Press “+ ADD CARD” to create the first one.</td>
+                            </tr>
+                        )}
                         {cards.map((card) => {
                             const isEditing =
                                 editingCardId ===
@@ -328,25 +379,44 @@ export default function ManageCardPage() {
                                     {/* CARD NAME */}
                                     <td>
                                         {isEditing ? (
-                                            <input type="text"
-                                                value={
-                                                    editName
-                                                }
-                                                onChange={( event ) => setEditName( event
-                                                            .target
-                                                            .value
-                                                    )
-                                                }
-                                            />
+                                            <>
+                                                <input type="text"
+                                                    value={
+                                                        editName
+                                                    }
+                                                    onChange={( event ) => setEditName( event
+                                                                .target
+                                                                .value
+                                                        )
+                                                    }
+                                                />
+                                                <input
+                                                    type="file"
+                                                    accept={IMAGE_ACCEPT}
+                                                    aria-label="Replace card image"
+                                                    onChange={(event) =>
+                                                        setEditImage(event.target.files?.[0] || null)
+                                                    }
+                                                />
+                                            </>
                                         ) : (
                                             <div className="manage-card-name">
 
-                                                <TarotCard
-                                                    title={
-                                                        card.title
-                                                    }
-                                                    className="manage-tarot-card"
-                                                />
+                                                {card.image ? (
+                                                    <img
+                                                        src={card.image}
+                                                        alt={card.name}
+                                                        className="manage-tarot-card"
+                                                        style={{ objectFit: "cover" }}
+                                                    />
+                                                ) : (
+                                                    <TarotCard
+                                                        title={
+                                                            card.title
+                                                        }
+                                                        className="manage-tarot-card"
+                                                    />
+                                                )}
                                                 <span>
                                                     {
                                                         card.name
@@ -366,14 +436,9 @@ export default function ManageCardPage() {
                                                 onChange={(event) => setEditTimeOrCategory(event.target.value)
                                                 }
                                             >
-                                                <option value="Daily">Daily</option>
-                                                <option value="Monthly">Monthly</option>
-                                                <option value="Weekly">Weekly</option>
-                                                <option value="Love">Love</option>
-                                                <option value="Health">Health</option>
-                                                <option value="Pets">Pets</option>
-                                                <option value="Finance">Finance</option>
-                                                <option value="Career">Career</option>
+                                                {CATEGORY_OPTIONS.map((option) => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
                                             </select>
                                         ) : (
                                             <span>{card.category}</span>
@@ -432,6 +497,7 @@ export default function ManageCardPage() {
                                                         type="button"
                                                         className="edit-card-btn"
                                                         aria-label="Save card"
+                                                        disabled={editSaving}
                                                         onClick={(
                                                             event
                                                         ) =>
@@ -444,6 +510,7 @@ export default function ManageCardPage() {
                                                         type="button"
                                                         className="delete-card-btn"
                                                         aria-label="Cancel edit"
+                                                        disabled={editSaving}
                                                         onClick={
                                                             handleCancelEdit
                                                         }
@@ -536,26 +603,15 @@ export default function ManageCardPage() {
                                 <div className="add-card-column">
                                     <label>IMAGE</label>
 
-                                    {/* The file goes to the bucket as soon as it
-                                        is chosen, and what is kept in state is
-                                        the path the upload answers with — that
-                                        is what `cards.pict` stores. */}
                                     <input
                                         type="file"
-                                        accept="image/jpeg,image/png,image/webp,image/gif"
-                                        disabled={uploading}
-                                        onChange={handleImageChange}
+                                        accept={IMAGE_ACCEPT}
+                                        onChange={(event) =>
+                                            setImage(
+                                                event.target.files?.[0] || null
+                                            )
+                                        }
                                     />
-
-                                    {uploading && <p className="add-card-hint">Uploading…</p>}
-
-                                    {image && !uploading && (
-                                        <img
-                                            src={image}
-                                            alt="Card preview"
-                                            className="add-card-preview"
-                                        />
-                                    )}
                                 </div>
 
                                 <div className="add-card-column">
@@ -569,42 +625,18 @@ export default function ManageCardPage() {
                                             )
                                         }
                                     >
-                                        <option value="Daily">
-                                            Daily
-                                        </option>
-
-                                        <option value="Monthly">
-                                            Monthly
-                                        </option>
-
-                                        <option value="Weekly">
-                                            Weekly
-                                        </option>
-
-                                        <option value="Love">
-                                            Love
-                                        </option>
-
-                                        <option value="Health">
-                                            Health
-                                        </option>
-
-                                        <option value="Pets">
-                                            Pets
-                                        </option>
-
-                                        <option value="Finance">
-                                            Finance
-                                        </option>
-
-                                        <option value="Career">
-                                            Career
-                                        </option>
+                                        {CATEGORY_OPTIONS.map((option) => (
+                                            <option key={option} value={option}>
+                                                {option}
+                                            </option>
+                                        ))}
                                     </select>
 
                                 </div>
 
                             </div>
+
+                            {formError && <p className="login-error">{formError}</p>}
 
                             <div className="add-card-form-divider"></div>
 
@@ -613,14 +645,16 @@ export default function ManageCardPage() {
                                 <button
                                     type="submit"
                                     className="save-card-btn"
+                                    disabled={saving}
                                 >
-                                    SAVE CARD
+                                    {saving ? "SAVING..." : "SAVE CARD"}
                                 </button>
 
                                 <button
                                     type="button"
                                     className="cancel-card-btn"
                                     onClick={handleCancel}
+                                    disabled={saving}
                                 >
                                     CANCEL
                                 </button>
@@ -648,17 +682,16 @@ export default function ManageCardPage() {
                             <button
                                 type="button"
                                 className="delete-confirm-btn"
-                                onClick={() => {
-                                    handleDeleteCard(deleteTarget.id);
-                                    setDeleteTarget(null);
-                                }}
+                                disabled={deleting}
+                                onClick={() => handleDeleteCard(deleteTarget.id)}
                             >
-                                DELETE
+                                {deleting ? "DELETING..." : "DELETE"}
                             </button>
 
                             <button
                                 type="button"
                                 className="delete-cancel-btn"
+                                disabled={deleting}
                                 onClick={() => setDeleteTarget(null)}
                             >
                                 CANCEL

@@ -1,12 +1,35 @@
-import { TarotCard } from "@/components/TarotVisual";
+"use client";
+
+import { useState } from "react";
+import { BrandMark, MenuIcon, CloseXIcon } from "@/components/TarotVisual";
+import { NavMenu } from "@/components/NavMenu";
 
 export default function About() {
+    const [menuOpen, setMenuOpen] = useState(false);
+
     return (
         <main className="about-page">
 
-            <nav>
-                <img src="/logo.svg" alt="Tarot Diary Logo" />
-            </nav>
+            <header className="app-header">
+                <div className="header-left">
+                    <button
+                        type="button"
+                        className="icon-button"
+                        aria-label={menuOpen ? "Close menu" : "Open menu"}
+                        onClick={() => setMenuOpen((open) => !open)}
+                    >
+                        {menuOpen ? <CloseXIcon /> : <MenuIcon />}
+                    </button>
+                    {!menuOpen && <BrandMark />}
+                </div>
+            </header>
+
+            {menuOpen && (
+                <NavMenu
+                    onNavigate={() => setMenuOpen(false)}
+                    onDismiss={() => setMenuOpen(false)}
+                />
+            )}
 
             <section className="about-top">
                 <div className="about-content">
@@ -26,7 +49,6 @@ export default function About() {
                 <div className="about-card">
                     <img src="/about/tarot-card-about.svg" alt="The High Priestess" />
                 </div>
-
             </section>
 
             <section className="about-description">
