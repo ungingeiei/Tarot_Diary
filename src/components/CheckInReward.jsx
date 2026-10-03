@@ -16,7 +16,11 @@ const rewards = [
 
 export default function CheckInReward({ coins = 0, onCollect }) {
     const [currentCoins, setCurrentCoins] = useState(coins);
+    // The card to highlight: the day today's COLLECT will award, or the
+    // one just awarded. Not the same as the streak count — see the note
+    // on `checkinDay` in /api/auth/me.
     const [currentDay, setCurrentDay] = useState(1);
+    const [streak, setStreak] = useState(0);
     const [claimed, setClaimed] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -28,7 +32,8 @@ export default function CheckInReward({ coins = 0, onCollect }) {
 
                 if (data.success) {
                     setCurrentCoins(data.user.coins);
-                    setCurrentDay(data.user.streak);
+                    setCurrentDay(data.user.checkinDay);
+                    setStreak(data.user.streak);
                     setClaimed(data.user.claimedToday);
                 }
             } catch (error) {
@@ -57,6 +62,7 @@ export default function CheckInReward({ coins = 0, onCollect }) {
                 if (data.reason === "already_claimed") {
                     setCurrentCoins(data.coin);
                     setCurrentDay(data.streak);
+                    setStreak(data.streak);
                     setClaimed(true);
                 }
 
@@ -65,6 +71,7 @@ export default function CheckInReward({ coins = 0, onCollect }) {
 
             setCurrentCoins(data.coin);
             setCurrentDay(data.streak);
+            setStreak(data.streak);
             setClaimed(true);
         } catch (error) {
             console.error("Failed to collect daily reward:", error);
@@ -114,7 +121,7 @@ export default function CheckInReward({ coins = 0, onCollect }) {
 
                     <div className="checkin-streak">
                         <span className="streak-lightning">ϟ</span>
-                        <span>DAY {currentDay} STREAK</span>
+                        <span>DAY {streak} STREAK</span>
                     </div>
 
                     <button

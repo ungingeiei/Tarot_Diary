@@ -2,16 +2,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AuthField } from "../../components/AuthField";
 import { BrandMark } from "../../components/TarotVisual";
 // --- ADDED: password rule checker used before saving to accounts.pwd ---
 import { validatePassword } from "../../lib/validators/password";
+import { signIn } from "../../lib/auth";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  // Whatever the server rejected the sign-up for — an email that is
+  // already taken, a field left empty. Separate from passwordErrors,
+  // which are the client-side rules checked before anything is sent.
+  const [error, setError] = useState("");
   // --- ADDED: holds the messages for whichever password rules currently
   // fail, so they can be shown under the field. Empty = password is OK.
   const [passwordErrors, setPasswordErrors] = useState([]);
@@ -19,14 +26,22 @@ export default function RegisterPage() {
   // browser leaves this page, so the button stops looking clickable.
   const [googleStarting, setGoogleStarting] = useState(false);
 
-  // --- CURRENT handleSubmit: same as original, plus a password check
-  // inserted before setLoading/setTimeout run.
-  const handleSubmit = (e) => {
+  // --- CHANGED: the account is now really created. This used to be a
+  // setTimeout that only flipped the button label, so nothing was ever
+  // saved. The same two-step the login page uses:
+  //   1. POST /api/auth/register -> hashes the password, inserts the row
+  //      into `accounts`, and sets the httpOnly session cookie.
+  //   2. GET  /api/auth/me       -> confirms that cookie really works
+  //      before we claim the user is signed in.
+  // Only then is the sign-in mirrored into lib/auth.js (which the Header
+  // reads) and the user sent to the home page.
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
     // --- ADDED: gate the save on the password rules. Stop here if any
-    // rule fails; only a fully-valid password reaches setLoading below
-    // (where it would eventually be hashed and saved into `accounts.pwd`).
+    // rule fails; only a fully-valid password is sent to the server
+    // (where it is hashed and saved into `accounts.pwd`).
     const { valid, errors } = validatePassword(password);
     if (!valid) {
       setPasswordErrors(errors);
@@ -36,7 +51,37 @@ export default function RegisterPage() {
     // --- END ADDED ---
 
     setLoading(true);
-    window.setTimeout(() => setLoading(false), 1200);
+    try {
+      // ----- Step 1: create the account -----
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        // e.g. 409 "This email is already registered"
+        throw new Error(data.message || "Could not create your account");
+      }
+
+      // ----- Step 2: the session cookie is really valid -----
+      const meRes = await fetch("/api/auth/me", { cache: "no-store" });
+      const meData = await meRes.json().catch(() => ({}));
+      if (!meRes.ok || !meData.success || !meData.user) {
+        throw new Error("We couldn't verify your account. Please try again.");
+      }
+
+      const user = meData.user;
+      signIn({
+        name: user.name || name,
+        email: user.email || email,
+      });
+      router.push("/");
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,7 +112,12 @@ export default function RegisterPage() {
           )}
           {/* --- END ADDED --- */}
 
-          <button className="gold-button" type="submit" disabled={loading}>
+          {/* Server-side rejections: the email is taken, a field is
+              missing, the database is unreachable. Without this the
+              sign-up would just silently do nothing. */}
+          {error && <p className="login-error">{error}</p>}
+
+          <button className="gold-button" type="submit" disabled={loading || googleStarting}>
             {loading ? "CREATING..." : "CREATE ACCOUNT"}
           </button>
         </form>

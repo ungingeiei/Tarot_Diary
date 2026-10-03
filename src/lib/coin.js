@@ -52,6 +52,27 @@ const DAILY_REWARDS = {
     8: 50,
 };
 
+export const MAX_STREAK_DAY = 8;
+
+/**
+ * Which day of the streak a check-in made RIGHT NOW would award.
+ *
+ * Both callers (collectCheckinReward below, and /api/auth/me, which
+ * needs it only to highlight the right card) go through this, so the
+ * reward the modal promises and the one the server pays out cannot
+ * drift apart.
+ *
+ * `claimedYesterday` is computed by MySQL, not from a JS Date: the
+ * "was it yesterday?" test has to use the same clock as the
+ * `claimed_today` test next to it, or the two disagree whenever the
+ * database server and Node are in different timezones.
+ */
+export function nextStreakDay({ streak, claimedYesterday }) {
+    if (!claimedYesterday) return 1; // first ever, or the streak lapsed
+    const next = Number(streak) + 1;
+    return next > MAX_STREAK_DAY ? 1 : next; // past day 8, start over
+}
+
 export async function collectCheckinReward(accountId) {
     // Check current account information first
     const [rows] = await db.execute(
@@ -59,7 +80,8 @@ export async function collectCheckinReward(accountId) {
         coin,
         streak,
         last_login_date,
-        last_login_date = CURDATE() AS claimed_today
+        last_login_date = CURDATE() AS claimed_today,
+        last_login_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY) AS claimed_yesterday
      FROM accounts
      WHERE id = ?
      LIMIT 1`,
@@ -88,39 +110,14 @@ export async function collectCheckinReward(accountId) {
         };
     }
 
-    // Calculate streak
-    let newStreak = 1;
-
-    if (account.last_login_date) {
-        const lastLogin = new Date(account.last_login_date);
-        const today = new Date();
-
-        const lastDate = new Date(
-            lastLogin.getFullYear(),
-            lastLogin.getMonth(),
-            lastLogin.getDate()
-        );
-
-        const todayDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate()
-        );
-
-        const difference =
-            (todayDate - lastDate) / (1000 * 60 * 60 * 24);
-
-        if (difference === 1) {
-            newStreak = account.streak + 1;
-        } else {
-            newStreak = 1;
-        }
-    }
-
-    // After Day 8, start again from Day 1
-    if (newStreak > 8) {
-        newStreak = 1;
-    }
+    // Calculate streak. The day-difference used to be worked out from JS
+    // Dates here while `claimed_today` above came from MySQL — two
+    // different clocks deciding what "today" means. Both flags now come
+    // from the same SELECT.
+    const newStreak = nextStreakDay({
+        streak: account.streak,
+        claimedYesterday: account.claimed_yesterday,
+    });
 
     const reward = DAILY_REWARDS[newStreak];
 
