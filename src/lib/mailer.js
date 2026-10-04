@@ -20,10 +20,11 @@
  * ---------------------------------------------------------------------
  */
 
-export async function sendPasswordResetEmail(to, resetUrl) {
+// `code` = the 6-digit code typed on the reset-password page (the link still works too).
+export async function sendPasswordResetEmail(to, resetUrl, code) {
   // ----- DEV MODE: just print the link -----
   if (!process.env.SMTP_HOST) {
-    console.log(`[mailer] SMTP not configured. Reset link for ${to}:\n${resetUrl}`);
+    console.log(`[mailer] SMTP not configured. Reset code for ${to}: ${code}\nReset link:\n${resetUrl}`);
     return;
   }
 
@@ -51,12 +52,16 @@ export async function sendPasswordResetEmail(to, resetUrl) {
     // Plain-text version (for mail apps that do not show HTML).
     text:
       `We received a request to reset your Tarot Diary password.\n\n` +
-      `Open this link to choose a new password (valid for 30 minutes):\n${resetUrl}\n\n` +
+      `Your reset code: ${code}\n` +
+      `Type it on the reset password page you just opened (valid for 30 minutes).\n\n` +
+      `Or open this link to choose a new password:\n${resetUrl}\n\n` +
       `If you did not ask for this, you can ignore this email — your password will not change.`,
     // HTML version.
     html:
       `<p>We received a request to reset your Tarot Diary password.</p>` +
-      `<p><a href="${resetUrl}">Choose a new password</a> (link valid for 30 minutes).</p>` +
+      `<p>Your reset code: <strong style="font-size:22px;letter-spacing:4px">${code}</strong><br>` +
+      `Type it on the reset password page you just opened (valid for 30 minutes).</p>` +
+      `<p>Or <a href="${resetUrl}">open this link to choose a new password</a>.</p>` +
       `<p>If you did not ask for this, you can ignore this email — your password will not change.</p>`,
   });
 }
