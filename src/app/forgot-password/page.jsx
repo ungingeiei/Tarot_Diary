@@ -6,14 +6,13 @@
  * ---------------------------------------------------------------------
  * Opened from the "Forgot your password?" button on the login page.
  *
- * Flow:
- *   1. User types their email and presses SEND RESET LINK.
+ * Flow (one click):
+ *   1. User types their email and presses GO TO RESET PASSWORD.
  *   2. We call  POST /api/auth/forgot-password  { email }.
- *   3. On success we go straight to /reset-password?email=... where the
- *      user types the 6-digit code from the email plus the new password.
- *      (The server gives the same answer whether or not the email is
- *      registered, so this page never reveals who has an account.)
- *   4. Opening the emailed link (/reset-password?token=...) still works too.
+ *   3. If the email is registered, the server answers with a one-time
+ *      token and we open /reset-password?token=... at once, where the
+ *      user types a new password. No email and no code are involved.
+ *   4. If the email is not registered, the error is shown here.
  *
  * Looks the same as the register page: it reuses the existing
  * .auth-page / .register-card styles from globals.css, so no new CSS
@@ -47,19 +46,17 @@ export default function ForgotPasswordPage() {
 
       const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        throw new Error(data.message || "Could not send the reset code");
+      if (!res.ok || !data.token) {
+        throw new Error(data.message || "Could not start the password reset");
       }
 
-      // Remember for 15 minutes that this browser sent the form. src/proxy.js (when it is
-      // switched on) only lets a visitor open /reset-password if this cookie exists.
-      document.cookie = "reset_requested=1; path=/; max-age=900; samesite=lax";
-
-      // Go to the reset-password page now; the user types the code from the email there.
-      router.push(`/reset-password?email=${encodeURIComponent(email.trim())}`);
+      // Go to the reset-password page now, carrying the one-time token from the server.
+      router.push(`/reset-password?token=${encodeURIComponent(data.token)}`);
+      // The button stays disabled while the next page loads, so a second click cannot
+      // start a second request (loading is only reset in the catch below).
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
-    } finally {
+      // Only on an error do we let the user press the button again.
       setLoading(false);
     }
   };
@@ -75,7 +72,7 @@ export default function ForgotPasswordPage() {
         <div className="heading-block register-heading">
           <span className="gold-line small" />
           <h1>Forgot password?</h1>
-          <p>Enter your email and we&apos;ll send you a code to reset your password.</p>
+          <p>Enter your email, then choose a new password.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -92,7 +89,7 @@ export default function ForgotPasswordPage() {
           {error && <p className="login-error">{error}</p>}
 
           <button className="gold-button" type="submit" disabled={loading || !email.trim()}>
-            {loading ? "SENDING..." : "SEND RESET CODE"}
+            {loading ? "OPENING..." : "GO TO RESET PASSWORD"}
           </button>
         </form>
 

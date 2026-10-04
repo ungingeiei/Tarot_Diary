@@ -7,7 +7,7 @@
 // kept below and the real code is commented out.
 // To turn it ON: (1) delete the PLACEHOLDER block, (2) delete the two lines that say
 // "DELETE THIS LINE TO TURN ON" (the first starts with /*, the last ends with */),
-// (3) un-comment the document.cookie line in src/app/forgot-password/page.jsx,
+// (3) nothing to do for /reset-password: the forgot-password page opens it with ?token=..., which the proxy accepts,
 // then restart `npm run dev`.
 
 // ---- PLACEHOLDER START: does nothing, just lets every request through ----

@@ -4,23 +4,19 @@
  * ---------------------------------------------------------------------
  * app/reset-password/page.jsx — "CHOOSE A NEW PASSWORD" PAGE
  * ---------------------------------------------------------------------
- * Two ways to arrive here:
- *   A) right after SEND RESET CODE on /forgot-password:
- *          /reset-password?email=<the email>
- *      The user types the 6-digit code from the email + a new password.
- *   B) from the link inside the email:
+ * How the user gets here: they press GO TO RESET PASSWORD on
+ * /forgot-password, which opens
  *          /reset-password?token=<64 hex characters>
- *      No code needed; the link itself is the proof.
+ * (the token was just created by the server for the email they typed).
+ * No email and no code are involved.
  *
  * Flow:
- *   1. (link only) On load we ask  GET /api/auth/reset-password?token=...
- *      whether the link is still valid (not used, not expired).
- *        - invalid  -> show "link expired" + a button to request a new one
+ *   1. On load we ask  GET /api/auth/reset-password?token=...
+ *      whether the token is still valid (not used, not expired).
+ *        - invalid  -> show "expired" + a button back to /forgot-password
  *        - valid    -> show the new-password form
- *      (email + code mode is not pre-checked, so this page never reveals
- *       whether an email is registered.)
- *   2. On submit we call  POST /api/auth/reset-password
- *        { token, password }   or   { email, code, password }.
+ *   2. On submit we call  POST /api/auth/reset-password  { token, password }.
+ *      The password must follow the same rules as the register page.
  *   3. On success we show a confirmation and send the user to /login.
  *
  * Reuses the existing auth styles (globals.css) — no new CSS needed.
@@ -38,25 +34,16 @@ import { BrandMark } from "../../components/TarotVisual";
 import { validatePassword } from "../../lib/validators/password";
 
 const INVALID_LINK_MESSAGE =
-  "This reset link is invalid or has expired. Please request a new one.";
+  "This reset page is invalid or has expired. Please start again from the forgot-password page.";
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
-  // Set when the user came from /forgot-password (and has no emailed link open).
-  const email = searchParams.get("email") || "";
-  // true = the user types the 6-digit code; false = the emailed link is the proof.
-  const codeMode = !token && Boolean(email);
 
-  // "checking" -> asking the server | "valid" -> show form | "invalid" -> bad link
-  // A link is checked with the server first. Code mode shows the form at once.
-  // Neither a token nor an email in the URL is already known to be invalid.
-  const [linkStatus, setLinkStatus] = useState(
-    token ? "checking" : email ? "valid" : "invalid"
-  );
-  // The 6-digit code typed from the email (code mode only).
-  const [code, setCode] = useState("");
+  // "checking" -> asking the server | "valid" -> show form | "invalid" -> bad or missing token
+  // No token in the URL is already known to be invalid.
+  const [linkStatus, setLinkStatus] = useState(token ? "checking" : "invalid");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -65,7 +52,7 @@ function ResetPasswordContent() {
   // Messages for every password rule that currently fails (same idea as the register page).
   const [passwordErrors, setPasswordErrors] = useState([]);
 
-  // Step 1: check the link as soon as the page opens.
+  // Step 1: check the token as soon as the page opens.
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
@@ -88,12 +75,6 @@ function ResetPasswordContent() {
     e.preventDefault();
     setError("");
 
-    // Code mode: the code must be exactly 6 digits.
-    if (codeMode && !/^\d{6}$/.test(code)) {
-      setError("Enter the 6-digit code from the email");
-      return;
-    }
-
     // Check the new password with the SAME rules as the register page.
     // Stop here and list every broken rule; nothing is sent to the server.
     const { valid, errors } = validatePassword(password);
@@ -114,8 +95,8 @@ function ResetPasswordContent() {
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Link: send the token. Code mode: send the email and the code instead.
-        body: JSON.stringify(codeMode ? { email, code, password } : { token, password }),
+        // Send the one-time token together with the new password.
+        body: JSON.stringify({ token, password }),
       });
       const data = await res.json().catch(() => ({}));
 
@@ -142,10 +123,8 @@ function ResetPasswordContent() {
   const subtitle = done
     ? "Password updated."
     : linkStatus === "invalid"
-      ? "This link can't be used."
-      : codeMode
-        ? "Enter the code we emailed you and choose a new password."
-        : "Choose a new password for your account.";
+      ? "This page can't be used."
+      : "Choose a new password for your account.";
 
   return (
     <main className="auth-page register-page">
@@ -162,14 +141,14 @@ function ResetPasswordContent() {
         </div>
 
         {linkStatus === "checking" && (
-          <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Checking your link…</p>
+          <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>Checking…</p>
         )}
 
         {linkStatus === "invalid" && (
           <div className="auth-form">
             <p className="login-error">{INVALID_LINK_MESSAGE}</p>
             <Link href="/forgot-password" className="gold-button" style={{ textAlign: "center", textDecoration: "none" }}>
-              REQUEST A NEW LINK
+              START AGAIN
             </Link>
           </div>
         )}
@@ -187,25 +166,6 @@ function ResetPasswordContent() {
 
         {linkStatus === "valid" && !done && (
           <form onSubmit={handleSubmit} className="auth-form">
-            {codeMode && (
-              <>
-                {/* Shows which email the code was sent to. */}
-                <p style={{ margin: 0, color: "var(--cream)", fontSize: 13, lineHeight: 1.7 }}>
-                  We sent a 6-digit code to{" "}
-                  <strong style={{ color: "var(--gold)" }}>{email}</strong>. If it is
-                  registered, the code is in your inbox now and works for 30 minutes.
-                </p>
-                <AuthField
-                  label="6-digit code"
-                  placeholder="123456"
-                  autoComplete="one-time-code"
-                  value={code}
-                  // Keep digits only, at most 6.
-                  onChange={(value) => setCode(value.replace(/\D/g, "").slice(0, 6))}
-                  icon="mail"
-                />
-              </>
-            )}
             <AuthField
               label="New password"
               placeholder="Create a new password"
@@ -240,11 +200,6 @@ function ResetPasswordContent() {
             <button className="gold-button" type="submit" disabled={loading}>
               {loading ? "SAVING..." : "RESET PASSWORD"}
             </button>
-            {codeMode && (
-              <p className="switch-text">
-                No email? <Link href="/forgot-password">Send a new code</Link>
-              </p>
-            )}
           </form>
         )}
       </section>
