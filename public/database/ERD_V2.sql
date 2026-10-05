@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `accounts` (
-	`id` INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+	`id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
 	`f_name` VARCHAR(255) NOT NULL,
 	`l_name` VARCHAR(255) NOT NULL,
 	`email` VARCHAR(255) NOT NULL,
@@ -9,9 +9,9 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 	`dob` DATE,
 	`zodiac` VARCHAR(255),
 	`coin` INTEGER NOT NULL DEFAULT 50,
+	`last_login_date` DATE,
 	`streak` INTEGER NOT NULL DEFAULT 0,
-	PRIMARY KEY(`id`),
-	UNIQUE KEY `uniq_accounts_email` (`email`)
+	PRIMARY KEY(`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `cards` (
