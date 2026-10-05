@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `accounts` (
 	`dob` DATE,
 	`zodiac` VARCHAR(255),
 	`coin` INTEGER NOT NULL DEFAULT 50,
+	`last_login_date` DATE NOT NULL,
 	`streak` INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`id`)
 );
