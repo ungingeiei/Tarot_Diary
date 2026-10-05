@@ -198,8 +198,8 @@ a { color: inherit; }
 .reading-panel.is-loading { justify-content: center; align-items: center; min-height: 420px; }
 .reading-card-col { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
 .reading-card { width: 260px; }
-.reading-card-frame { width: 260px; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
-.reading-card-img { width: 100%; height: auto; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
+.reading-card-frame { width: 260px; aspect-ratio: 2 / 3; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
+.reading-card-img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
 .reading-loading { margin: 18px 0 0; font-family: var(--display); font-weight: 300; color: rgba(232,227,216,.55); font-size: 15px; letter-spacing: .04em; text-align: center; }
 .reading-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .reading-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid rgba(201,169,110,.25); }
@@ -860,8 +860,8 @@ nav a:hover {
 .reading-panel.is-loading { justify-content: center; align-items: center; min-height: 420px; }
 .reading-card-col { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
 .reading-card { width: 260px; }
-.reading-card-frame { width: 260px; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
-.reading-card-img { width: 100%; height: auto; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
+.reading-card-frame { width: 260px; aspect-ratio: 2 / 3; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
+.reading-card-img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
 .reading-loading { margin: 18px 0 0; font-family: var(--display); font-weight: 300; color: rgba(232,227,216,.55); font-size: 15px; letter-spacing: .04em; text-align: center; }
 .reading-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .reading-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid rgba(201,169,110,.25); }
@@ -2610,9 +2610,6 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     color: #fff;
 }
 /* =========================Check-in Reward========================= */
-/* Every length below is the original design scaled to ~70%: the modal
-   was tall enough to fill a laptop screen edge to edge. Proportions are
-   unchanged, so it still reads as the same panel, just smaller. */
 
 .checkin-overlay {
     position: fixed;
@@ -2627,10 +2624,10 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 
 .checkin-modal {
     position: relative;
-    width: 600px;
+    width: 850px;
     max-width: 90%;
-    min-height: 460px;
-    padding: 68px 42px 38px;
+    min-height: 650px;
+    padding: 100px 60px 55px;
     box-sizing: border-box;
 
     background: #0d0d15;
@@ -2639,7 +2636,7 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 .checkin-content {
-    width: min(480px, 100%);
+    width: min(680px, 100%);
     margin: 0 auto;
 
     display: flex;
@@ -2650,15 +2647,15 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 /* Coin balance */
 .checkin-coin-balance {
     position: absolute;
-    right: 20px;
-    top: 20px;
-    min-width: 36px;
-    height: 38px;
-    padding: 6px 18px;
+    right: 30px;
+    top: 30px;
+    min-width: 50px;
+    height: 54px;
+    padding: 8px 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 20px;
     background: #08080d;
     border-radius: 45px;
     box-shadow:
@@ -2669,33 +2666,33 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .checkin-coin-balance > span {
     color: #ae8419;
     font-family: "Oranienbaum", serif;
-    font-size: 21px;
+    font-size: 30px;
 }
 
 .checkin-coin {
-    width: 23px;
-    height: 23px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     background: #e8af3e;
-    border: 2px solid #f7c74e;
+    border: 3px solid #f7c74e;
     box-shadow:
-        inset 0 0 0 3px rgba(121, 78, 15, 0.25),
+        inset 0 0 0 4px rgba(121, 78, 15, 0.25),
         0 0 8px rgba(240, 201, 104, 0.3);
 }
 
 .checkin-coin svg {
-    width: 21px;
-    height: 21px;
+    width: 30px;
+    height: 30px;
 }
 
 /* Title */
 .checkin-content h1 {
-    margin: 0 0 34px;
+    margin: 0 0 50px;
     color: #f1eac7;
     font-family: "Oranienbaum", serif;
-    font-size: 28px;
+    font-size: 40px;
     font-weight: 200;
     letter-spacing: 1px;
 }
@@ -2704,22 +2701,22 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .checkin-rewards {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(4, 68px);
+    grid-template-columns: repeat(4, 96px);
     justify-content: space-between;
-    row-gap: 32px;
+    row-gap: 50px;
 }
 
 .checkin-day {
-    width: 68px;
-    height: 92px;
+    width: 96px;
+    height: 130px;
     border: 2px solid #77777f;
-    border-radius: 12px;
+    border-radius: 17px;
     background: #27272f;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 13px;
+    gap: 20px;
 }
 
 .checkin-day.active {
@@ -2728,13 +2725,13 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 .checkin-day-coin {
-    width: 37px;
-    height: 37px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     background: #55555a;
-    border: 2px solid #77777a;
+    border: 3px solid #77777a;
 }
 
 .checkin-day.active .checkin-day-coin {
@@ -2743,14 +2740,14 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 .checkin-day-coin svg {
-    width: 21px;
-    height: 21px;
+    width: 30px;
+    height: 30px;
 }
 
 .checkin-day-label {
     color: #85858a;
     font-family: "Oranienbaum", serif;
-    font-size: 13px;
+    font-size: 18px;
     letter-spacing: 0.5px;
 }
 
@@ -2758,50 +2755,39 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     color: #d8b86d;
 }
 
-/* The amount never had a rule of its own, so it kept the body font size
-   and now looks oversized next to the scaled-down card. */
-.checkin-day-amount {
-    font-size: 13px;
-}
-
 /* Streak */
 .checkin-streak {
-    margin-top: 40px;
-    height: 30px;
-    padding: 0 20px;
+    margin-top: 60px;
+    height: 40px;
+    padding: 0 30px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     border: 1px solid #9d875f;
     border-radius: 24px;
     background: #574f3e;
     color: #f2eee8;
-    font-size: 13px;
-    letter-spacing: 3.5px;
-}
-
-/* Keeps the badge's space in the layout while it has nothing to say. */
-.checkin-streak.is-empty {
-    visibility: hidden;
+    font-size: 18px;
+    letter-spacing: 5px;
 }
 
 .streak-lightning {
     color: #f2d45b;
-    font-size: 18px;
+    font-size: 25px;
 }
 
 /* Collect */
 .checkin-collect-btn {
-    width: 350px;
+    width: 500px;
     max-width: 100%;
-    height: 52px;
-    margin-top: 40px;
+    height: 75px;
+    margin-top: 58px;
     border: none;
-    border-radius: 12px;
+    border-radius: 17px;
     background: #87672f;
     color: #ffffff;
     font-family: "Oranienbaum", serif;
-    font-size: 21px;
+    font-size: 30px;
     letter-spacing: 1px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
@@ -2812,125 +2798,94 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     transform: translateY(-2px);
 }
 
-/* Card image upload (admin console) */
-.add-card-hint {
-    margin: 6px 0 0;
-    color: #c9a96e;
-    font-size: 13px;
-}
+/* =========================
+   Not Enough Coins Popup
+   ========================= */
 
-.add-card-preview {
-    margin-top: 10px;
-    max-width: 120px;
-    max-height: 170px;
-    border: 1px solid rgba(201, 169, 110, 0.5);
-    border-radius: 8px;
-    object-fit: cover;
-}
-
-/* =========================Draw ring=========================
-   "Reveal Your Cards" sends the five cards around a shallow ellipse —
-   a ring seen almost edge on — eases it to a stop after whole turns, then
-   turns the front card face up.
-
-   Only each card's position on the ring changes: they stay upright the
-   whole way round rather than rotating on their own axis. Positions are
-   written frame by frame from draw/page.jsx, because where the ring
-   stops depends on when the draw request answers. */
-
-.card-ring {
-    position: relative;
-    width: 100%;
-    height: 420px;
-    margin-bottom: 36px;
-}
-
-.card-ring .card-pick {
-    position: absolute;
-    /* The ellipse is measured from the middle of the row, so every card
-       is placed by its own centre. */
-    left: 50%;
-    top: 50%;
-    width: 195px;
-    /* transform, opacity and z-index are all set from JS each frame; no
-       transition here, or it would fight the per-frame updates. */
-    will-change: transform, opacity;
-}
-
-.card-ring .card-pick .tarot-card {
-    width: 100%;
-}
-
-/* The front card is lit only when the ring is at rest — mid-spin it is
-   just whichever card happens to be passing the front. */
-.card-ring.is-idle .card-pick.is-selected .tarot-card,
-.card-ring.is-flipping .card-pick.is-selected .tarot-card {
-    border-color: rgba(201, 169, 110, .6);
-    box-shadow: 0 30px 90px rgba(201, 169, 110, .14);
-}
-
-/* ---------- The front card turning over ---------- */
-
-.card-flip {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    transform-style: preserve-3d;
-    transition: transform 1s cubic-bezier(.4, .1, .2, 1);
-}
-
-.card-flip.is-flipped {
-    transform: rotateY(180deg);
-}
-
-.card-flip-face {
-    position: absolute;
+.not-enough-overlay {
+    position: fixed;
     inset: 0;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
 }
 
-/* The face is mounted turned around, so it reads the right way up once
-   the card has made its half turn. */
-.card-flip-front {
-    transform: rotateY(180deg);
-    border: 1px solid rgba(201, 169, 110, .6);
-    background: #0d0d15;
-    box-shadow: 0 30px 90px rgba(201, 169, 110, .22);
-    overflow: hidden;
+.not-enough-modal {
+    width: min(650px, calc(100% - 100px));
+    min-height: 200px;
+    padding: 45px;
+    box-sizing: border-box;
+    background: #0b0b10;
+    border: 2px solid #d9362a;
+    border-radius: 30px;
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.7);
 }
 
-/* The frame is given the picture's own proportions as it turns (see
-   draw/page.jsx), so the artwork meets the gold edge exactly — nothing
-   cropped off it and no bars down the sides. */
-.card-flip-front img {
+.not-enough-modal h2 {
+    margin: 0;
+    color: #e34637;
+    font-family: "Oranienbaum", serif;
+    font-size: 35px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.not-enough-divider {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    height: 2px;
+    margin: 25px auto 30px;
+    background: #f4f0e8;
 }
 
-.card-flip-back .tarot-card {
-    width: 100%;
-    height: 100%;
+.not-enough-message {
+    text-align: center;
 }
 
-/* The ring is decoration; for anyone who asked not to be moved, the draw
-   still runs and the card simply appears. */
-@media (prefers-reduced-motion: reduce) {
-    .card-flip {
-        transition: none;
-    }
+.not-enough-message p {
+    margin: 0;
+    color: #f4f0e8;
+    font-family: "Oranienbaum", serif;
+    font-size: 25px;
+    line-height: 1.5;
 }
 
-@media (max-width: 900px) {
-    /* Shrinking the whole ring keeps the ellipse's proportions, which
-       scaling the cards alone would not. */
-    .card-ring {
-        height: 320px;
-        transform: scale(.72);
-    }
+.not-enough-message .not-enough-highlight {
+    color: #d8a936;
+    font-size: 25px;
+}
+
+.not-enough-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 190px;
+    margin-top: 50px;
+}
+
+.not-enough-actions button {
+    width: 300px;
+    height: 50px;
+    border-radius: 22px;
+    font-family: "Oranienbaum", serif;
+    font-size: 25px;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.not-enough-cancel {
+    color: #ffffff;
+    background: #a82a1c;
+    border: 1px solid #a82a1c;
+}
+
+.not-enough-get-coins {
+    color: #ffffff;
+    background: #87d9d2;
+    border: 1px solid #87d9d2;
 }
