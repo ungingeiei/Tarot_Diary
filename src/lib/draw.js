@@ -29,7 +29,7 @@
  */
 
 import db from "@/lib/db";
-import { getSessionAccountId } from "@/lib/apiAuth";
+import { getCurrentAccount } from "@/lib/apiAuth";
 import { DRAW_COST, getAccountCoins, spendCoins } from "@/lib/coin";
 import { pickRandomReading, toReadingCard, windowCondition } from "@/lib/cardQueries";
 
@@ -65,7 +65,16 @@ function ok(row, { alreadyDrawn = false, redrawn = false, cost = 0, coin = null 
 }
 
 export async function handleDraw(scope, topic, { redraw = false } = {}) {
-  const accountId = await getSessionAccountId();
+  // The whole account rather than just its id, because the role decides
+  // whether there is a draw to make at all. Checked here rather than in
+  // each route: /api/draw, /api/cards/daily and /api/cards/time all come
+  // through this function, and a rule written three times is a rule that
+  // will be missed once.
+  const account = await getCurrentAccount();
+  if (account?.role === "admin") {
+    return fail("Admin accounts do not draw cards", 403, { reason: "ADMIN_ACCOUNT" });
+  }
+  const accountId = account?.id ?? null;
 
   async function visitorDraw() {
     if (redraw) return fail("Please sign in to draw again", 401);

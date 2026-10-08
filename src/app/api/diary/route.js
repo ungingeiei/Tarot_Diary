@@ -27,7 +27,7 @@
  */
 
 import db from "@/lib/db";
-import { requireUser } from "@/lib/apiAuth";
+import { requireReader } from "@/lib/apiAuth";
 import { KIND_LABELS, isValidReading, splitParagraphs } from "@/lib/cardQueries";
 
 function toDiaryEntry(row) {
@@ -79,7 +79,7 @@ async function ensureDiary(executor, accountId) {
 
 export async function GET() {
   try {
-    const auth = await requireUser();
+    const auth = await requireReader();
     if (auth.error) return auth.error;
     return Response.json({ success: true, entries: await findEntries(db, auth.account.id) });
   } catch (error) {
@@ -90,7 +90,7 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const auth = await requireUser();
+    const auth = await requireReader();
     if (auth.error) return auth.error;
     const accountId = auth.account.id;
 
@@ -162,7 +162,7 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
-    const auth = await requireUser();
+    const auth = await requireReader();
     if (auth.error) return auth.error;
 
     const fromQuery = new URL(request.url).searchParams.get("id");

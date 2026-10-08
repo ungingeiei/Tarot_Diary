@@ -52,6 +52,36 @@ export async function requireUser() {
   return { account };
 }
 
+/**
+ * The reading side of the app: signed in, and NOT an admin.
+ *
+ * An admin account exists to run the card console. It has no reading of
+ * its own — every page of the reading side turns it away (useUserOnly in
+ * lib/auth.js) — and this is the same rule on the server, where it is
+ * the one that counts: the pages only decide what is drawn.
+ *
+ * 403 rather than 401: the caller is signed in, their account simply is
+ * not the kind that reads cards. `reason` is there so a client can tell
+ * this apart from "your session expired" without matching on prose.
+ */
+export async function requireReader() {
+  const auth = await requireUser();
+  if (auth.error) return auth;
+  if (auth.account.role === "admin") {
+    return {
+      error: Response.json(
+        {
+          success: false,
+          reason: "ADMIN_ACCOUNT",
+          message: "Admin accounts do not draw cards",
+        },
+        { status: 403 }
+      ),
+    };
+  }
+  return auth;
+}
+
 export async function requireAdmin() {
   const auth = await requireUser();
   if (auth.error) return auth;
