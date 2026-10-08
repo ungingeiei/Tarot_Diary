@@ -317,14 +317,16 @@ export default function ManageCardPage() {
                         ADMIN CONSOLE
                     </div>
 
-                    {/* Covers "admins only", a failed save, a dropped
-                        connection — without it the console would just
-                        stop responding to clicks with no reason given. */}
-                    {loadError && (
-                        <p className="login-error">{loadError}</p>
-                    )}
-
                 </div>
+
+                {/* Covers "admins only", a failed save, a dropped
+                    connection — without it the console would just stop
+                    responding to clicks with no reason given. Below the
+                    row rather than inside it: a long message in there
+                    would push the brand and the badge around. */}
+                {loadError && (
+                    <p className="login-error manage-card-error">{loadError}</p>
+                )}
 
             </header>
 

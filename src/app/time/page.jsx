@@ -22,21 +22,21 @@ export default function ReadingPeriodPage() {
     <main className="app-page reading-period-page">
       <AppHeader />
 
-      {/* Page Title */}
-      <section className="reading-period-hero">
-        <div className="reading-period-heading">
-          <h1 className="reading-period-title">
-            <div className="choose-line">
-              <span className="title-choose">Choose</span>
-              <img src={asset("time/line-timepage.svg")} alt="line" />
-            </div>
-            <span className="title-period">
-              A Time Period
-              <small className="reading-period-subtitle">
-                Focus your energy and trust the cards to reveal guidance
-              </small>
-            </span>
-          </h1>
+      {/* Page Title — the same hero the category page uses, down to the
+          class names: two pages that ask the same question in the same
+          place should not each have their own version of it. */}
+      <section className="category-hero">
+        <p className="category-title">
+          <span className="line1">Choose</span>
+          <span className="line2">A Time Period</span>
+        </p>
+        <p className="category-subtitle">
+          Focus your energy and trust the cards to reveal guidance
+        </p>
+        <div className="category-divider" aria-hidden="true">
+          <span />
+          <SparkleIcon />
+          <span />
         </div>
       </section>
 

@@ -405,92 +405,88 @@ a { color: inherit; }
   .diary-entry { padding: 22px 20px 44px; }
   .diary-entry-top { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
-/* =========================Time Selection Page========================= */
+/* =========================Time Selection Page=========================
+   The hero is the shared .category-hero / .category-title block, so only
+   the period cards are this page's own.
+
+   The layout used to be held together by offsets that cancelled each
+   other out — the heading pushed -150px, the title another -150px
+   inside it, the illustration given a 2000x2000 box and then a 450px
+   one, and the button pulled back up by -150px to land under what was
+   left. Nothing could be changed without moving everything, and on a
+   laptop the buttons ended up below the fold. */
+
 .reading-period-page {
-  min-height: 100vh;
-  background: #0b0712;
-  color: #f5e6b3;
-}
-
-/* Time Selection - Hero */
-.reading-period-heading {
   display: flex;
-  justify-content: center;
-  transform: translateX(-150px);
+  flex-direction: column;
 }
 
-.reading-period-title {
-  margin: 0;
-  color: #b49326;
-  font-size: 56px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  font-family: 'Georgia', Times, serif;
-}
-
-.title-choose {
-  display: block;
-  margin-left: -150px;
-}
-
-.title-period {
-  display: block;
-  margin-left: 10px;
-  font-size: 56px;
-}
-
-.reading-period-subtitle {
-  display: block;
-  margin-top: 18px;
-  color: #d8d0c4;
-  font-size: 25px;
-  font-weight: 400;
-  letter-spacing: 0.5px;
-}
-
-.category-divider svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-}
-
-.category-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.category-divider span {
-  width: 100px;
-  height: 1px;
-  background: #d4af37;
-}
-
-.reading-period-image {
-  width: 2000px;
-  height: 2000px;
-  object-fit: contain;
-}
-
-/* Time Selection - Cards */
 .reading-period-grid {
+  position: relative;
+  z-index: 2;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  margin-top: 50px;
-  gap: 2px;
+  align-items: flex-start;
+  gap: 48px;
+  margin: 44px auto 90px;
+  padding: 0 24px;
 }
 
 .reading-period-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
   text-align: center;
 }
 
+/* The card is a window onto the artwork, not the whole file.
+ *
+ * The glow in these SVGs is not contained by the drawn frame: it bleeds
+ * past it on every side and fades out well below the bottom edge. Any
+ * margin left around the frame fills with green, which reads as a card
+ * background the white frame is too short for. So the window is the
+ * frame itself.
+ *
+ * Measured off the three files at 1200px wide, the frame sits at:
+ *
+ *     daily    y 18.76%-71.24%   x 25.67%-73.58%
+ *     weekly   y 19.75%-72.23%   x 25.67%-73.58%
+ *     monthly  y 19.59%-72.07%   x 25.50%-73.42%
+ *
+ * They are not drawn in quite the same place, so the window is the union
+ * of the three plus one per cent of slack — a first pass cut to one
+ * file's numbers lost the bottom stroke on the other two. Every frame
+ * now clears the card's edges by 1.8% or more on each side.
+ *
+ * 1/0.912 is the window's own shape: a little taller than square, which
+ * is as long as this artwork gets without cutting into the frame.
+ */
+.reading-period-card {
+  width: clamp(200px, 22vw, 268px);
+  aspect-ratio: 0.912;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .reading-period-image {
-  width: 100%;
-  height: 450px;
-  object-fit: cover;
+  flex: none;
+  width: 196%;
+  max-width: none;
+  height: auto;
   display: block;
+  /* The frame sits above centre in the file. */
+  transform: translateY(4.5%);
+}
+
+@media (max-width: 900px) {
+  .reading-period-grid {
+    gap: 32px;
+    margin: 32px auto 70px;
+  }
 }
 
 /* Header icons */
@@ -603,39 +599,30 @@ a { color: inherit; }
   height: 24px;
 }
 
-/* Time Selection - Start Reading Button */
+/* Time Selection - Start Reading Button
+   The same gold as every other primary button in the app
+   (.gold-button-md); it was a pale flat #fbe18c that matched nothing,
+   and sentence case where every other button here is uppercase. */
 
 .reading-period-btn {
-  margin-top: -150px;
-  width: 180px;
-  height: 44px;
-  border-radius: 1px;
-  background: #fbe18c;
-  color: #0b0712;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  min-width: 180px;
+  padding: 13px 26px;
+  border: 1px solid rgba(201, 169, 110, 0.35);
+  border-radius: 2px;
+  background: linear-gradient(135deg, #c9a96e 0%, #b8935a 100%);
+  color: #09090f;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-
-.choose-line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  transform: translateX(-150px);
-}
-
-.title-choose {
-  color: #b49326;
-  font-size: 56px;
-  font-weight: 700;
-}
-
-.choose-line img {
-  width: 180px;
-  height: auto;
+.reading-period-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(201, 169, 110, 0.2);
 }
 
 /* =========================MOBILE / TABLET========================= */
@@ -1540,20 +1527,25 @@ MANAGE CARD PAGE
 
 
 /* =========================================================HEADER========================================================= */
+/* One row: the brand and the ADMIN CONSOLE badge sit on the same line as
+   the menu button, the way .app-header does it on every other page. They
+   used to be stacked under it — a column with a 25px gap below the
+   button and a 70px left margin on the brand to line the two up by
+   hand. */
 .manage-card-header {
     position: relative;
-    min-height: 145px;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 24px 55px 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 55px;
     box-sizing: border-box;
 }
 
 .manage-card-menu-btn {
     width: 45px;
     height: 45px;
-    margin-bottom: 25px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1577,8 +1569,13 @@ MANAGE CARD PAGE
 .manage-card-title-row {
     display: flex;
     align-items: center;
-    gap: 32px;
-    margin-left: 0;
+    gap: 20px;
+}
+
+/* Its own line under the row, full width. */
+.manage-card-error {
+    flex-basis: 100%;
+    margin: 0;
 }
 
 .manage-card-brand {
@@ -1588,7 +1585,6 @@ MANAGE CARD PAGE
     font-size: 14px;
     letter-spacing: 2px;
     white-space: nowrap;
-    margin-left: 70px;
 }
 
 .admin-console {
@@ -1603,7 +1599,6 @@ MANAGE CARD PAGE
     font-weight: 500;
     letter-spacing: 2px;
     box-shadow: 0 0 18px rgba(107, 30, 135, 0.05);
-    margin-left: 12px;
 }
 
 
