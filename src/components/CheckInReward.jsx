@@ -73,6 +73,15 @@ export default function CheckInReward({ coins = 0, onCollect }) {
             setCurrentDay(data.streak);
             setStreak(data.streak);
             setClaimed(true);
+
+            // The header reads the balance from the shared session store,
+            // which listens for this. Without it the coin pill kept the
+            // number it had when the page loaded.
+            window.dispatchEvent(
+                new CustomEvent("tarotdiary-coins-change", {
+                    detail: { coin: data.coin },
+                })
+            );
         } catch (error) {
             console.error("Failed to collect daily reward:", error);
         } finally {

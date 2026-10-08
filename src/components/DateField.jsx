@@ -74,10 +74,16 @@ export function DateField({
   }));
 
   // Re-opening after the value changed elsewhere should land on it.
-  useEffect(() => {
-    if (open && selected) setView({ y: selected.y, m: selected.m });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  // Done as part of opening rather than in an effect on `open`: the
+  // effect ran after the panel had already painted on the old month, so
+  // the grid jumped, and it re-rendered the whole field a second time
+  // every time the panel was opened.
+  const toggle = () => {
+    // Not inside the setOpen updater: an updater must be a pure function
+    // of the previous state, and React is free to call it twice.
+    if (!open && selected) setView({ y: selected.y, m: selected.m });
+    setOpen((wasOpen) => !wasOpen);
+  };
 
   // Close on a click outside or on Escape, the way a dropdown is expected
   // to behave; without this the panel would stay open over the form.
@@ -131,7 +137,7 @@ export function DateField({
       <button
         type="button"
         className={`date-field-trigger${value ? "" : " is-empty"}`}
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         aria-haspopup="dialog"
         aria-expanded={open}
       >

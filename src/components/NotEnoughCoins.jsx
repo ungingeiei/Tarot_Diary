@@ -9,9 +9,9 @@ export default function NotEnoughCoins({ onCancel, onGetCoins }) {
         <div className="not-enough-divider" />
 
         <div className="not-enough-message">
-          <p>You've already claimed your free reading for today.</p>
+          <p>You&apos;ve already claimed your free reading for today.</p>
           <p className="not-enough-highlight">
-            To unlock another reading, you'll need coins.
+            To unlock another reading, you&apos;ll need coins.
           </p>
         </div>
 

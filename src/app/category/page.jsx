@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
+import { useUserOnly } from "../../lib/auth";
 
 const CATEGORIES = [
   { key: "love", label: "Love", area: "love" },
@@ -13,6 +14,10 @@ const CATEGORIES = [
 ];
 
 export default function CategoryPage() {
+  // An admin has no reading of their own to look at; the console is
+  // where they belong. See useUserOnly in lib/auth.js.
+  useUserOnly();
+
   const router = useRouter();
 
   return (

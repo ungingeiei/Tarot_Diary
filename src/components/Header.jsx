@@ -1,29 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BrandMark, MenuIcon, CloseXIcon, HeartCoinIcon } from "./TarotVisual";
 import { NavMenu } from "./NavMenu";
+import { useSession } from "../lib/auth";
 
 export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [credits, setCredits] = useState(0);
 
-  useEffect(() => {
-    async function loadCoins() {
-      try {
-        const response = await fetch("/api/auth/me");
-        const data = await response.json();
-
-        if (data.success) {
-          setCredits(data.user.coins);
-        }
-      } catch (error) {
-        console.error("Failed to load coins:", error);
-      }
-    }
-
-    loadCoins();
-  }, []);
+  // The shared session rather than a fetch of its own: every page draws
+  // this header, and each one was asking /api/auth/me again. The store
+  // also takes the new balance from the "tarotdiary-coins-change" event,
+  // so a draw or a check-in updates the number without a round trip.
+  const { user } = useSession();
+  const credits = user?.coins ?? 0;
+  // Coins pay for readings, and an admin does not have one. Showing a
+  // balance they can neither spend nor need only made the console look
+  // like the reading side of the app.
+  const showCredits = Boolean(user) && user.role !== "admin";
 
   return (
     <>
@@ -41,16 +35,18 @@ export function AppHeader() {
           {!menuOpen && <BrandMark />}
         </div>
 
-        <div
-          className="credits-pill"
-          aria-label={`${credits} credits`}
-        >
-          <span className="coin">
-            <HeartCoinIcon />
-          </span>
+        {showCredits && (
+          <div
+            className="credits-pill"
+            aria-label={`${credits} credits`}
+          >
+            <span className="coin">
+              <HeartCoinIcon />
+            </span>
 
-          <span>{credits}</span>
-        </div>
+            <span>{credits}</span>
+          </div>
+        )}
       </header>
 
       {menuOpen && (

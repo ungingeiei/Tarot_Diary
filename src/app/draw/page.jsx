@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { TarotCard, SparkleIcon } from "../../components/TarotVisual";
+import { useUserOnly } from "../../lib/auth";
 
 const CARD_COUNT = 5;
 
@@ -53,6 +54,10 @@ function placeCard(i, offset) {
 }
 
 function DrawContent() {
+  // An admin has no reading of their own to look at; the console is
+  // where they belong. See useUserOnly in lib/auth.js.
+  useUserOnly();
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "";

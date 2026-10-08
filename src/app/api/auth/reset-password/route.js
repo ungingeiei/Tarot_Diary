@@ -2,12 +2,12 @@
  * ---------------------------------------------------------------------
  * /api/auth/reset-password
  * ---------------------------------------------------------------------
- * Called by app/reset-password/page.jsx (the page the emailed link
- * opens). Two methods:
+ * Called by app/reset-password/page.jsx (the page /forgot-password sends
+ * the user to). Two methods:
  *
- *   GET  ?token=...            -> is this link still valid?
+ *   GET  ?token=...            -> is this reset session still valid?
  *        Response: { success: true } or { success: false, message }
- *        (lets the page show "link expired" before the user types)
+ *        (lets the page show "expired" before the user types)
  *
  *   POST { token, password }   -> save the new password.
  *        Response: { success: true } or { success: false, message }
@@ -17,9 +17,11 @@
  */
 
 import { findValidResetToken, resetPasswordWithToken } from "@/lib/passwordReset";
+// passwordProblems = the register-page rules (lib/validators/password.js) + bcrypt's 72-byte limit.
+import { passwordProblems } from "@/lib/apiAuth";
 
 const INVALID_LINK_MESSAGE =
-  "This reset link is invalid or has expired. Please request a new one.";
+  "This reset page is invalid or has expired. Please start again from the forgot-password page.";
 
 // ----- GET: check the link before showing the form -----
 export async function GET(request) {
@@ -48,10 +50,12 @@ export async function POST(request) {
   try {
     const { token, password } = await request.json();
 
-    // Same minimum length as the register route.
-    if (typeof password !== "string" || password.length < 8) {
+    // Re-check the password rules here too, because the browser check can be skipped
+    // by calling this API directly. Sends back the list so the page can show each rule.
+    const problems = passwordProblems(password);
+    if (problems.length > 0) {
       return Response.json(
-        { success: false, message: "Password must be at least 8 characters" },
+        { success: false, message: problems.join(" "), errors: problems },
         { status: 400 }
       );
     }

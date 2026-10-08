@@ -1,42 +1,50 @@
+/**
+ * ---------------------------------------------------------------------
+ * lib/coins.js — coin balance, paying for a draw, and the login streak
+ * ---------------------------------------------------------------------
+ * Every change is ONE atomic SQL statement, so two requests arriving at
+ * the same moment can never spend the same coins twice or overdraw.
+ * ---------------------------------------------------------------------
+ */
+
 import db from "@/lib/db";
 
-// Coins one reading costs. Override with DRAW_COST in .env.local.
+// Coins a paid redraw costs (a new card inside a window you already drew in). Override with DRAW_COST in .env.local.
 const configured = Number.parseInt(process.env.DRAW_COST, 10);
-export const DRAW_COST =
-    Number.isInteger(configured) && configured >= 0 ? configured : 10;
+export const DRAW_COST = Number.isInteger(configured) && configured >= 0 ? configured : 10;
 
-export async function getAccountCoins(accountId) {
-    const [rows] = await db.execute(
-        "SELECT coin, streak FROM accounts WHERE id = ? LIMIT 1",
-        [accountId]
-    );
-
-    return rows[0] || null;
+export async function getAccountCoins(accountId, executor = db) {
+  const [rows] = await executor.execute(
+    "SELECT coin, streak FROM accounts WHERE id = ? LIMIT 1",
+    [accountId]
+  );
+  return rows[0] || null;
 }
 
-export async function spendCoins(accountId, amount) {
-    if (amount > 0) {
-        const [result] = await db.execute(
-            "UPDATE accounts SET coin = coin - ? WHERE id = ? AND coin >= ?",
-            [amount, accountId, amount]
-        );
-
-        if (result.affectedRows === 0) {
-            const row = await getAccountCoins(accountId);
-
-            return {
-                ok: false,
-                reason: row ? "insufficient" : "no_account",
-                coin: row?.coin ?? 0,
-            };
-        }
+/**
+ * Takes `amount` coins, only if the balance covers it.
+ * Returns { ok: true, coin } or { ok: false, reason, coin } where reason is
+ * "insufficient" or "no_account".
+ */
+export async function spendCoins(accountId, amount, executor = db) {
+  if (amount > 0) {
+    const [result] = await executor.execute(
+      "UPDATE accounts SET coin = coin - ? WHERE id = ? AND coin >= ?",
+      [amount, accountId, amount]
+    );
+    if (result.affectedRows === 0) {
+      const row = await getAccountCoins(accountId, executor);
+      return {
+        ok: false,
+        reason: row ? "insufficient" : "no_account",
+        coin: row?.coin ?? 0,
+      };
     }
-
-    const row = await getAccountCoins(accountId);
-
-    return row
-        ? { ok: true, coin: row.coin }
-        : { ok: false, reason: "no_account", coin: 0 };
+  }
+  const row = await getAccountCoins(accountId, executor);
+  return row
+    ? { ok: true, coin: row.coin }
+    : { ok: false, reason: "no_account", coin: 0 };
 }
 
 

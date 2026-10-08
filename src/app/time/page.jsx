@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { SparkleIcon } from "../../components/TarotVisual";
 import { asset } from "@/lib/assets";
+import { useUserOnly } from "../../lib/auth";
 
 const READING_PERIODS = [
   { key: "daily", label: "DAILY" },
@@ -11,6 +12,10 @@ const READING_PERIODS = [
 ];
 
 export default function ReadingPeriodPage() {
+  // An admin has no reading of their own to look at; the console is
+  // where they belong. See useUserOnly in lib/auth.js.
+  useUserOnly();
+
   const router = useRouter();
 
   return (

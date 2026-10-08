@@ -1,13 +1,41 @@
-import { TarotCard } from "@/components/TarotVisual";
+"use client";
+
+import { useState } from "react";
+import { BrandMark, MenuIcon, CloseXIcon } from "@/components/TarotVisual";
+import { NavMenu } from "@/components/NavMenu";
 import { asset } from "@/lib/assets";
+import { useUserOnly } from "@/lib/auth";
 
 export default function About() {
+    // An admin has no reading of their own to look at; the console is
+    // where they belong. See useUserOnly in lib/auth.js.
+    useUserOnly();
+
+    const [menuOpen, setMenuOpen] = useState(false);
+
     return (
         <main className="about-page">
 
-            <nav>
-                <img src={asset("logo.svg")} alt="Tarot Diary Logo" />
-            </nav>
+            <header className="app-header">
+                <div className="header-left">
+                    <button
+                        type="button"
+                        className="icon-button"
+                        aria-label={menuOpen ? "Close menu" : "Open menu"}
+                        onClick={() => setMenuOpen((open) => !open)}
+                    >
+                        {menuOpen ? <CloseXIcon /> : <MenuIcon />}
+                    </button>
+                    {!menuOpen && <BrandMark />}
+                </div>
+            </header>
+
+            {menuOpen && (
+                <NavMenu
+                    onNavigate={() => setMenuOpen(false)}
+                    onDismiss={() => setMenuOpen(false)}
+                />
+            )}
 
             <section className="about-top">
                 <div className="about-content">
@@ -27,7 +55,6 @@ export default function About() {
                 <div className="about-card">
                     <img src={asset("about/tarot-card-about.svg")} alt="The High Priestess" />
                 </div>
-
             </section>
 
             <section className="about-description">
@@ -38,7 +65,7 @@ export default function About() {
 
                 <p>
                     It is a place where intuition meets reflection, helping users
-                    explore life's questions through the symbolism and wisdom of tarot cards.
+                    explore life&apos;s questions through the symbolism and wisdom of tarot cards.
                 </p>
 
                 <p>

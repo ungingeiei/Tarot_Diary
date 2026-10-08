@@ -1,32 +1,41 @@
 /**
- * Brings the deck's artwork in-house.
+ * Brings the deck's artwork in-house, at the size the pages actually
+ * draw it.
  *
  *   node --env-file=.env scripts/migrate-card-images.mjs
  *
  * The seeded cards point `cards.pict` at commons.wikimedia.org. That
  * makes every reading depend on someone else's server staying up and
- * serving us. This downloads each picture, keeps a copy in
+ * serving us. This fetches each picture, resizes it, keeps a copy in
  * public/cards/, uploads it to the bucket under `cards/`, and repoints
- * `cards.pict` at /api/images/cards/<slug>.<ext>.
+ * `cards.pict` at /api/images/cards/<slug>-<width>.jpg.
  *
- * Safe to re-run: a card already pointing at /api/images is skipped, so
- * running it twice does not re-download the deck or touch the rows.
- * Nothing is deleted — the original URLs are printed, and the local
- * copies stay on disk.
+ * WHY THE RESIZE: the Wikimedia scans are about 1100x1920 and roughly a
+ * megabyte each, while the reading frame is 260 CSS px wide and the draw
+ * ring's cards are 195. Served through /api/images — which fetches from
+ * the bucket on every miss — a full-size scan took two to four seconds to
+ * arrive. An <img> keeps painting the picture it already has until the
+ * new one decodes, so a redraw sat with the previous card's artwork under
+ * the new card's name for that whole time.
+ *
+ * Safe to re-run, and safe to run against a deck that an earlier version
+ * of this script already moved: a card is skipped only when it already
+ * points at the key it would be given now. Anything else is re-fetched —
+ * from the local copy, the bucket, or the web, whichever applies — and
+ * repointed. Nothing is deleted; superseded objects are listed at the end.
  */
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import mysql from "mysql2/promise";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import sharp from "sharp";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
-const EXT = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-};
+// Twice the 260px frame, which covers a 2x screen, with a little room for
+// the 3x phones. Anything larger is detail no one can see.
+const TARGET_WIDTH = 700;
+const QUALITY = 82;
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const localDir = path.join(here, "..", "public", "cards");
@@ -60,6 +69,24 @@ fs.mkdirSync(localDir, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /**
+ * "The Hanged Man" -> "the_hanged_man".
+ *
+ * Taken from the NAME, not from `cards.kind`: kind holds the card's TYPE,
+ * and every row the admin console creates is written with the literal
+ * 'tarot'. Naming the file after it gave the whole deck one key, so each
+ * card overwrote the last and every reading ended up showing whichever
+ * picture was uploaded last.
+ */
+function slugFor(name) {
+  return String(name)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "") || "card";
+}
+
+const keyFor = (name) => `cards/${slugFor(name)}-${TARGET_WIDTH}.jpg`;
+
+/**
  * Fetches one picture, waiting and retrying on a 429.
  *
  * Wikimedia rate-limits a burst of twenty downloads and answers 429 for
@@ -82,58 +109,88 @@ async function download(url, attempt = 1) {
   }
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res;
+  return Buffer.from(await res.arrayBuffer());
 }
 
-const [cards] = await db.query("SELECT id, kind, name, pict FROM cards ORDER BY id");
+const toBuffer = async (body) => Buffer.concat(await body.toArray());
+
+/**
+ * The card's current artwork, wherever it happens to live.
+ *
+ * A deck an older run already moved has no web address left in `pict`, so
+ * the local copy is used, and the bucket is the fallback for a checkout
+ * that never had one. Returns { bytes, from } — `from` is only for the log.
+ */
+async function sourceBytes(pict) {
+  if (/^https?:\/\//i.test(pict || "")) {
+    return { bytes: await download(pict), from: "เว็บ" };
+  }
+
+  const match = /^\/api\/images\/(cards\/[A-Za-z0-9._-]+)$/.exec(pict || "");
+  if (!match) throw new Error(`ไม่รู้ว่ารูปอยู่ที่ไหน: ${pict || "(ว่าง)"}`);
+
+  const local = path.join(localDir, path.basename(match[1]));
+  if (fs.existsSync(local)) return { bytes: fs.readFileSync(local), from: "ในเครื่อง" };
+
+  const object = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: match[1] }));
+  return { bytes: await toBuffer(object.Body), from: "บัคเก็ต" };
+}
+
+const [cards] = await db.query("SELECT id, name, pict FROM cards ORDER BY id");
 
 let moved = 0;
 let skipped = 0;
 const failures = [];
+const superseded = new Set();
 
 for (const card of cards) {
-  if (!/^https?:\/\//i.test(card.pict || "")) {
+  const key = keyFor(card.name);
+  const url = `/api/images/${key}`;
+
+  if (card.pict === url) {
     skipped++;
-    console.log(`  ข้าม   ${card.name.padEnd(20)} ${card.pict || "(ว่าง)"}`);
+    console.log(`  ข้าม   ${card.name.padEnd(20)} ${url}`);
     continue;
   }
 
   try {
-    const res = await download(card.pict);
+    const { bytes, from } = await sourceBytes(card.pict);
 
-    const type = (res.headers.get("content-type") || "").split(";")[0].trim();
-    const ext = EXT[type];
-    if (!ext) throw new Error(`unexpected content-type ${type}`);
+    // withoutEnlargement: one or two of the seeded scans are smaller than
+    // the target already, and blowing those up would only cost bytes.
+    const resized = await sharp(bytes)
+      .rotate() // honour the EXIF orientation before it is stripped
+      .resize({ width: TARGET_WIDTH, withoutEnlargement: true })
+      .jpeg({ quality: QUALITY, mozjpeg: true })
+      .toBuffer();
 
-    const bytes = Buffer.from(await res.arrayBuffer());
-
-    // Named after the card's slug rather than randomly: this is a
-    // one-off migration of a known deck, and a readable key makes the
-    // bucket listing mean something.
-    const file = `${card.kind}.${ext}`;
-    fs.writeFileSync(path.join(localDir, file), bytes);
+    const file = path.basename(key);
+    fs.writeFileSync(path.join(localDir, file), resized);
 
     await s3.send(
       new PutObjectCommand({
         Bucket: BUCKET,
-        Key: `cards/${file}`,
-        Body: bytes,
-        ContentType: type,
+        Key: key,
+        Body: resized,
+        ContentType: "image/jpeg",
       })
     );
 
-    await db.execute("UPDATE cards SET pict = ? WHERE id = ?", [
-      `/api/images/cards/${file}`,
-      card.id,
-    ]);
+    await db.execute("UPDATE cards SET pict = ? WHERE id = ?", [url, card.id]);
+
+    const old = /^\/api\/images\/(cards\/[A-Za-z0-9._-]+)$/.exec(card.pict || "");
+    if (old) superseded.add(old[1]);
 
     moved++;
-    // Spacing the requests out is what keeps the rate limit from being
-    // hit at all on a clean run.
-    await sleep(700);
     console.log(
-      `  ย้าย   ${card.name.padEnd(20)} ${(bytes.length / 1024).toFixed(0).padStart(4)} KB  ->  /api/images/cards/${file}`
+      `  ย้าย   ${card.name.padEnd(20)} ${from.padEnd(9)} ` +
+        `${(bytes.length / 1024).toFixed(0).padStart(5)} KB -> ` +
+        `${(resized.length / 1024).toFixed(0).padStart(4)} KB  ${url}`
     );
+
+    // Spacing the requests out is what keeps Wikimedia's rate limit from
+    // being hit at all on a clean run.
+    if (from === "เว็บ") await sleep(700);
   } catch (err) {
     failures.push({ card: card.name, reason: err.message });
     console.log(`  ล้มเหลว ${card.name.padEnd(20)} ${err.message}`);
@@ -143,9 +200,16 @@ for (const card of cards) {
 console.log(`\nย้ายแล้ว ${moved} ใบ | ข้าม ${skipped} ใบ | ล้มเหลว ${failures.length} ใบ`);
 console.log(`สำเนาในเครื่อง: public/cards/`);
 
+if (superseded.size > 0) {
+  // Left in place on purpose: a browser that already cached one of these
+  // keeps using it, and /api/images sets a year-long immutable cache.
+  console.log(`\nออบเจ็กต์เก่าที่ไม่มีใครชี้ถึงแล้ว (ลบเองได้เมื่อพร้อม):`);
+  for (const key of [...superseded].sort()) console.log(`  ${key}`);
+}
+
 const [[still]] = await db.query(
   "SELECT COUNT(*) AS n FROM cards WHERE pict LIKE 'http%'"
 );
-console.log(`ยังชี้ URL ภายนอกอยู่: ${still.n} ใบ`);
+console.log(`\nยังชี้ URL ภายนอกอยู่: ${still.n} ใบ`);
 
 await db.end();

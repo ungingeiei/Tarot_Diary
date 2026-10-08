@@ -17,7 +17,7 @@
 
 import db from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { deleteImage, keyFromImageUrl } from "@/lib/storage";
+import { dropImageIfUnused } from "@/lib/cardImages";
 
 // label -> (scope, topic) in the database
 const TOPICS = {
@@ -62,31 +62,6 @@ async function requireAdmin() {
 
 function badRequest(message) {
   return Response.json({ success: false, message }, { status: 400 });
-}
-
-/**
- * Removes an uploaded image that nothing points at any more.
- *
- * Called after a card's picture is replaced, and after a card is
- * deleted. Checked against `cards` first because the same upload could
- * have been set on a second card by hand, and a storage failure is
- * swallowed: an image left behind costs a little space, while a thrown
- * error here would fail a write that has already happened.
- */
-async function dropImageIfUnused(url, exceptCardId = 0) {
-  const key = keyFromImageUrl(url);
-  if (!key) return; // an external link, e.g. the seeded Wikimedia deck
-
-  try {
-    const [used] = await db.execute(
-      "SELECT id FROM cards WHERE pict = ? AND id <> ? LIMIT 1",
-      [url, exceptCardId]
-    );
-    if (used.length > 0) return;
-    await deleteImage(key);
-  } catch (err) {
-    console.error("Could not remove unused image", key, err);
-  }
 }
 
 /** Validates the four fields every write shares. */
@@ -263,11 +238,10 @@ export async function PUT(request) {
     // Renaming here renames the card everywhere it appears, which is
     // the point: the name belongs to the card, not to this reading.
     //
-    // `kind` is deliberately left alone. It is the card's identifier —
-    // /api/cards hands it to the browser and /api/diary looks saves up by
-    // it — so rewriting it on every edit would churn an id for the sake
-    // of a display name, and would have renamed the seeded slugs the
-    // first time anyone corrected a typo.
+    // `kind` is deliberately left alone. It is the card's own
+    // identifier, so rewriting it on every edit would churn an id for
+    // the sake of a display name, and would have renamed the seeded
+    // slugs the first time anyone corrected a typo.
     await connection.execute(
       "UPDATE cards SET name = ? WHERE id = ?",
       [name, cardId]
@@ -285,10 +259,26 @@ export async function PUT(request) {
       }
     }
 
+    const [[was]] = await connection.execute(
+      "SELECT scope, topic FROM card_meanings WHERE id = ?",
+      [id]
+    );
+
     await connection.execute(
       "UPDATE card_meanings SET scope = ?, topic = ?, summary = ?, advice = ? WHERE id = ?",
       [scope, topic, prediction, advice, id]
     );
+
+    // A reading moved to another category takes the diary entries saved
+    // from it with it. `saves` records the (card, scope, topic) it was
+    // saved under, and the diary reads its text back through that triple
+    // — left behind, an entry would still list but with nothing to say.
+    if (was && (was.scope !== scope || was.topic !== topic)) {
+      await connection.execute(
+        "UPDATE saves SET scope = ?, topic = ? WHERE card_id = ? AND scope = ? AND topic = ?",
+        [scope, topic, cardId, was.scope, was.topic]
+      );
+    }
 
     await connection.commit();
 

@@ -5,119 +5,335 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { TarotCard } from "../../components/TarotVisual";
 import { ShareReadingModal } from "../../components/ShareReadingModal";
+import NotEnoughCoins from "../../components/NotEnoughCoins";
+import { useUserOnly } from "../../lib/auth";
 
-import { fetchDailyCard, fetchTimeCard } from "../../data/cardsClient";
+let lastDraw = null;
 
-import { isSignedIn } from "../../lib/auth";
-import { saveDiaryEntry } from "../../lib/diary";
+function drawCard(url) {
+  const now = Date.now();
 
-function ReadingContent() {
+  if (lastDraw && lastDraw.url === url && now - lastDraw.at < 2000) {
+    return lastDraw.promise;
+  }
+
+  const promise = (async () => {
+    const res = await fetch(url, {
+      cache: "no-store",
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Could not draw your card. Please try again."
+      );
+    }
+
+    return data;
+  })();
+
+  lastDraw = {
+    url,
+    at: now,
+    promise,
+  };
+
+  return promise;
+}
+
+/**
+ * Resolves once <img src=url> would paint immediately.
+ *
+ * The deck's artwork is around a megabyte a card and reaches the browser
+ * through /api/images, which fetches it from the bucket: two to four
+ * seconds each. An <img> keeps painting the picture it already has until
+ * the new one has decoded, so swapping `card` the moment the draw answers
+ * put the next card's NAME beside the previous card's PICTURE for those
+ * few seconds. Waiting here means the panel changes all at once.
+ *
+ * Never rejects, and gives up after `timeout`: a picture that will not
+ * load must not be able to hold the reading back for good.
+ */
+function preloadImage(url, timeout = 8000) {
+  if (!url) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const image = new window.Image();
+    const done = () => {
+      window.clearTimeout(timer);
+      resolve();
+    };
+    const timer = window.setTimeout(done, timeout);
+
+    image.onload = done;
+    image.onerror = done;
+    image.src = url;
+  });
+}
+
+function ReadingContent({ category, period }) {
+  // An admin has no reading of their own to look at; the console is
+  // where they belong. See useUserOnly in lib/auth.js.
+  useUserOnly();
+
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const category = searchParams.get("category") || "";
-
-  const period = searchParams.get("period") || "";
-
 
   const [card, setCard] = useState(null);
+  const [loadError, setLoadError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [toast, setToast] = useState(null); // { type: "success" | "error", message }
+
+  const [signedIn, setSignedIn] = useState(false);
+  const [coin, setCoin] = useState(0);
+  const [drawCost, setDrawCost] = useState(10);
+
+  const [redrawing, setRedrawing] = useState(false);
+  const [showNotEnoughCoins, setShowNotEnoughCoins] = useState(false);
+
+  const [toast, setToast] = useState(null);
+  const [headerKey, setHeaderKey] = useState(0);
+
+  const drawUrl = period
+    ? `/api/cards/time?period=${encodeURIComponent(period)}`
+    : `/api/cards/daily${
+        category ? `?category=${encodeURIComponent(category)}` : ""
+      }`;
+
+  const announceCoins = (newCoin) => {
+    if (typeof newCoin !== "number") {
+      return;
+    }
+
+    setCoin(newCoin);
+
+    window.dispatchEvent(
+      new CustomEvent("tarotdiary-coins-change", {
+        detail: {
+          coin: newCoin,
+        },
+      })
+    );
+
+    setHeaderKey((key) => key + 1);
+  };
+
+  const refreshCoins = async () => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        cache: "no-store",
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (data.success && typeof data.user?.coins === "number") {
+        setSignedIn(true);
+        announceCoins(data.user.coins);
+        return data.user.coins;
+      }
+    } catch (error) {
+      console.error("Failed to refresh coins:", error);
+    }
+
+    return null;
+  };
 
   useEffect(() => {
     let cancelled = false;
-    setCard(null);
-    setSaved(false);
 
-    const fetchCard = period
-      ? fetchTimeCard(period)
-      : fetchDailyCard(category);
-
-    fetchCard
-      .then((result) => {
-        if (!cancelled) setCard(result);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        // Landing here without having drawn — a bookmarked /reading URL,
-        // or a window that has since rolled over. The card now belongs to
-        // a paid draw, so send them to the screen that makes one instead
-        // of quietly handing out a free reading.
-        if (err?.reason === "NO_DRAW") {
-          const params = new URLSearchParams();
-          if (category) params.set("category", category);
-          if (period) params.set("period", period);
-          router.replace(`/draw?${params.toString()}`);
+    drawCard(drawUrl)
+      .then(async (data) => {
+        if (cancelled) {
           return;
         }
-        setToast({
-          type: "error",
-          message: err?.message || "Could not load your reading. Please try again.",
-        });
+
+        setSignedIn(typeof data.coin === "number");
+
+        if (typeof data.drawCost === "number") {
+          setDrawCost(data.drawCost);
+        }
+
+        if (typeof data.coin === "number") {
+          announceCoins(data.coin);
+        }
+
+        // "Drawing your card…" stays up until the artwork is ready, so the
+        // frame is never filled with the card from the draw before this one.
+        await preloadImage(data.card?.image);
+
+        if (!cancelled) {
+          setCard(data.card);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setLoadError(
+            err.message || "Could not draw your card. Please try again."
+          );
+        }
       });
 
     return () => {
       cancelled = true;
     };
+    // drawUrl is derived from category and period, which this component is
+    // keyed on: it cannot change without the component being replaced.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  }, [category, period]);
-
-
-  // Auto-dismiss the save toast.
   useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
-
-  const handleSave = () => {
-    if (!card) return;
-
-    // Stand-in for: POST /api/diary  (server would 401 if the session is missing)
-    if (!isSignedIn()) {
-      setToast({
-        type: "error",
-        message: "Please sign in to save this reading to your Tarot Diary",
-      });
+    if (!toast) {
       return;
     }
 
-    // Only the card and which reading it was: the server joins the text
-    // back from card_meanings, so nothing is duplicated into the save.
-    saveDiaryEntry({
-      cardId: card.id,
-      scope: card.scope,
-      topic: card.topic,
-    }).then((ok) => {
-      if (ok) {
-        setSaved(true);
-        setToast({ type: "success", message: "Reading saved successfully" });
-      } else {
-        setToast({ type: "error", message: "Could not save this reading. Please try again." });
+    const timer = window.setTimeout(() => {
+      setToast(null);
+    }, 4000);
+
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  const handleRedraw = async () => {
+    if (!card || redrawing) {
+      return;
+    }
+
+    if (typeof coin === "number" && coin < drawCost) {
+      setShowNotEnoughCoins(true);
+      return;
+    }
+
+    setRedrawing(true);
+
+    try {
+      const res = await fetch(drawUrl, {
+        method: "POST",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        if (
+          data.reason === "NOT_ENOUGH_COINS" ||
+          res.status === 402 ||
+          res.status === 400
+        ) {
+          await refreshCoins();
+          setShowNotEnoughCoins(true);
+          return;
+        }
+
+        throw new Error(
+          data.message || "Could not draw a new card"
+        );
       }
-    });
+
+      await preloadImage(data.card?.image);
+
+      setCard(data.card);
+      setSaved(false);
+
+      await refreshCoins();
+    } catch (err) {
+      setToast({
+        type: "error",
+        message:
+          err.message || "Could not draw a new card",
+      });
+    } finally {
+      setRedrawing(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!card || saving || saved) {
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const res = await fetch("/api/diary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cardId: card.id,
+          scope: card.scope,
+          topic: card.topic,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 401) {
+        setToast({
+          type: "error",
+          message:
+            "Please sign in to save this reading to your Tarot Diary",
+        });
+        return;
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(
+          data.message || "Could not save your reading"
+        );
+      }
+
+      setSaved(true);
+
+      setToast({
+        type: "success",
+        message: data.duplicate
+          ? "This reading is already in your diary"
+          : "Reading saved successfully",
+      });
+    } catch (err) {
+      setToast({
+        type: "error",
+        message:
+          err.message || "Could not save your reading",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <main className="app-page reading-page">
-      <AppHeader />
+      <AppHeader key={headerKey} />
 
       {toast && (
-        <div className={`save-toast save-toast-${toast.type}`} role="status">
+        <div
+          className={`save-toast save-toast-${toast.type}`}
+          role="status"
+        >
           {toast.message}
         </div>
       )}
 
-      <section className={`reading-panel${!card ? " is-loading" : ""}`}>
+      <section
+        className={`reading-panel${!card ? " is-loading" : ""}`}
+      >
         <div className="reading-card-col">
           {card ? (
             <div className="reading-card-frame">
-              <img src={card.image} alt={card.imageAlt} className="reading-card-img" />
+              <img
+                key={card.image}
+                src={card.image}
+                alt={card.imageAlt}
+                className="reading-card-img"
+              />
             </div>
           ) : (
             <>
               <TarotCard className="reading-card" />
-              <p className="reading-loading">Drawing your card…</p>
+              <p className="reading-loading">
+                {loadError || "Drawing your card…"}
+              </p>
             </>
           )}
         </div>
@@ -126,7 +342,9 @@ function ReadingContent() {
           <div className="reading-content">
             <div className="reading-title-row">
               <h1>{card.name}</h1>
-              <span className="diary-pill">{card.diaryLabel}</span>
+              <span className="diary-pill">
+                {card.diaryLabel}
+              </span>
             </div>
 
             <div className="reading-body">
@@ -141,16 +359,53 @@ function ReadingContent() {
             </div>
 
             <div className="reading-actions">
-              <button type="button" className="gold-button-md" onClick={handleSave}>
-                {saved ? "Saved" : "Save Reading"}
+              <button
+                type="button"
+                className="gold-button-md"
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saved
+                  ? "Saved"
+                  : saving
+                  ? "Saving…"
+                  : "Save Reading"}
               </button>
-              <button type="button" className="gold-button-md" onClick={() => setShareOpen(true)}>
+
+              <button
+                type="button"
+                className="gold-button-md"
+                onClick={() => setShareOpen(true)}
+              >
                 Share Reading
               </button>
+
+              {signedIn && (
+                <button
+                  type="button"
+                  className="gold-button-md"
+                  onClick={handleRedraw}
+                  disabled={redrawing}
+                >
+                  {redrawing
+                    ? "Drawing…"
+                    : `Draw Again · ${drawCost} coins`}
+                </button>
+              )}
             </div>
           </div>
         )}
       </section>
+
+      {showNotEnoughCoins && (
+        <NotEnoughCoins
+          onCancel={() => setShowNotEnoughCoins(false)}
+          onGetCoins={() => {
+            setShowNotEnoughCoins(false);
+            router.push("/coins");
+          }}
+        />
+      )}
 
       {shareOpen && card && (
         <ShareReadingModal
@@ -163,10 +418,32 @@ function ReadingContent() {
   );
 }
 
+/**
+ * Reading a different category or period is a different reading, not the
+ * same one with new values: `key` makes React build a fresh
+ * ReadingContent for it. The effect used to clear `card`, `saved` and
+ * `loadError` by hand on every parameter change, which is the same work
+ * done late — for one render the new reading was already on screen with
+ * the previous one's state.
+ */
+function ReadingRoute() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category") || "";
+  const period = searchParams.get("period") || "";
+
+  return (
+    <ReadingContent
+      key={`${category}|${period}`}
+      category={category}
+      period={period}
+    />
+  );
+}
+
 export default function ReadingPage() {
   return (
     <Suspense fallback={null}>
-      <ReadingContent />
+      <ReadingRoute />
     </Suspense>
   );
 }

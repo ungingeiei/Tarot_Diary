@@ -8,7 +8,7 @@ import { BrandMark } from "../../components/TarotVisual";
 import CheckInReward from "../../components/CheckInReward";
 // --- ADDED: password rule checker used before saving to accounts.pwd ---
 import { validatePassword } from "../../lib/validators/password";
-import { signIn } from "../../lib/auth";
+import { setSession } from "../../lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -76,11 +76,7 @@ export default function RegisterPage() {
         throw new Error("We couldn't verify your account. Please try again.");
       }
 
-      const user = meData.user;
-      signIn({
-        name: user.name || name,
-        email: user.email || email,
-      });
+      setSession(meData.user);
       setShowReward(true);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");

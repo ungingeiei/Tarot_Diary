@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { signOut } from "../lib/auth";
+import { signOut, useSession } from "../lib/auth";
 
 /**
  * NavMenu
@@ -12,12 +12,15 @@ import { signOut } from "../lib/auth";
  * `.nav-menu-backdrop` / `.nav-menu` rules in app/globals.css if you
  * want to change its width, height, or overlay color.
  *
- * Each button's destination is defined right here in one place, so
- * if you need to point an item somewhere else later, this is the
- * only file to touch. HOME, ABOUT, and PROFILE currently point at
- * routes that don't exist yet (/home, /about, /profile) — HOME is
- * intentionally left 404ing until a real Home page is built; swap
- * these for real routes once those pages exist.
+ * Two menus, picked by the signed-in account's role. An admin is here
+ * to run the card console, not to have a reading, so the reading items
+ * (HOME, ABOUT, DIARY) are not theirs to see — every one of those pages
+ * now turns an admin away anyway (useUserOnly in lib/auth.js), and a
+ * menu leading to a redirect is worse than no menu item.
+ *
+ * Each button's destination is defined right here in one place, so if
+ * you need to point an item somewhere else later, this is the only file
+ * to touch.
  *
  * `onNavigate` fires after any menu item is clicked, so the parent
  * page can close the drawer (and flip its header icon back from
@@ -26,8 +29,22 @@ import { signOut } from "../lib/auth";
  * the header's own "X" icon counts as the explicit "close" action
  * that sends the user back to /category (see app/diary/page.jsx).
  */
+const USER_ITEMS = [
+  { label: "HOME", path: "/" },
+  { label: "ABOUT", path: "/about" },
+  { label: "PROFILE", path: "/profile" },
+  { label: "DIARY", path: "/diary" },
+];
+
+const ADMIN_ITEMS = [
+  { label: "MANAGE CARDS", path: "/addcard" },
+  { label: "PROFILE", path: "/admin" },
+];
+
 export function NavMenu({ onNavigate, onDismiss }) {
   const router = useRouter();
+  const { user } = useSession();
+  const items = user?.role === "admin" ? ADMIN_ITEMS : USER_ITEMS;
 
   const go = (path) => {
     onNavigate?.();
@@ -35,16 +52,10 @@ export function NavMenu({ onNavigate, onDismiss }) {
   };
 
   const handleLogout = async () => {
-    // The server clears the httpOnly session cookie. signOut() only ever
-    // cleared the localStorage mirror, so the real session stayed valid
-    // and /api/auth/me kept answering 200 after "logging out".
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch {
-      // Even if that request fails, still sign out on this device rather
-      // than leaving the user looking signed in.
-    }
-    signOut();
+    // signOut() posts to /api/auth/logout, which is what clears the
+    // httpOnly session cookie — the session lives on the server, so
+    // nothing this page could clear on its own would end it.
+    await signOut();
     onNavigate?.();
     router.push("/login");
   };
@@ -56,22 +67,16 @@ export function NavMenu({ onNavigate, onDismiss }) {
       <div className="nav-menu-backdrop" onClick={() => onDismiss?.()} aria-hidden="true" />
 
       <nav className="nav-menu" aria-label="Main menu">
-        {/* Intentionally 404s — there's no /home page yet. Point this
-            at the real route once one exists. */}
-        <button type="button" className="nav-menu-btn" onClick={() => go("/")}>
-          HOME
-        </button>
-        {/* TODO: build an /about page — this route doesn't exist yet */}
-        <button type="button" className="nav-menu-btn" onClick={() => go("/about")}>
-          ABOUT
-        </button>
-        {/* TODO: build a /profile page — this route doesn't exist yet */}
-        <button type="button" className="nav-menu-btn" onClick={() => go("/profile")}>
-          PROFILE
-        </button>
-        <button type="button" className="nav-menu-btn" onClick={() => go("/diary")}>
-          DIARY
-        </button>
+        {items.map((item) => (
+          <button
+            key={item.path}
+            type="button"
+            className="nav-menu-btn"
+            onClick={() => go(item.path)}
+          >
+            {item.label}
+          </button>
+        ))}
         <button type="button" className="nav-menu-btn nav-menu-logout" onClick={handleLogout}>
           LOGOUT
         </button>

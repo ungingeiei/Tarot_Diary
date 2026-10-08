@@ -14,8 +14,8 @@
  * Needs the `password_resets` table -> public/database/password_resets.sql
  *
  * Security rules this file follows:
- *   1. The raw token only exists in the emailed link. The database
- *      stores a SHA-256 hash of it.
+ *   1. The raw token only exists in the /reset-password URL the user is
+ *      sent to. The database stores a SHA-256 hash of it.
  *   2. A token expires after 30 minutes and can be used only once.
  *   3. Requesting a new link cancels the older unused links.
  *   4. Expiry is checked with the DATABASE clock (NOW()) so the web
@@ -29,10 +29,6 @@ import { hashPassword } from "./password";
 
 // How long a reset link stays valid.
 const TOKEN_LIFETIME_MINUTES = 30;
-
-// Minimum seconds between two reset emails for the same account.
-// Stops someone from spamming a user's inbox.
-const MIN_SECONDS_BETWEEN_REQUESTS = 60;
 
 // Turns a raw token into the value we store/look up in the database.
 function hashToken(rawToken) {
@@ -54,21 +50,12 @@ export async function findAccountByEmail(email) {
 /**
  * Create a new reset token for an account.
  *
- * Returns the RAW token (to put in the emailed link), or null when the
- * account asked for a link too recently (rate limit) — in that case the
- * caller should simply not send another email.
+ * Returns the RAW token. forgot-password/route.js hands it straight to the
+ * browser, which opens /reset-password?token=... right away (no email step).
+ * There is no "once per minute" limit any more: no email is sent, so the
+ * user can press the button again whenever they need to.
  */
 export async function createResetToken(accountId) {
-  // Rate limit: was a link already created in the last minute?
-  const [recent] = await db.execute(
-    `SELECT id FROM password_resets
-     WHERE account_id = ?
-       AND created_at > (NOW() - INTERVAL ? SECOND)
-     LIMIT 1`,
-    [accountId, MIN_SECONDS_BETWEEN_REQUESTS]
-  );
-  if (recent.length > 0) return null;
-
   // Cancel older links that were never used — only the newest works.
   await db.execute(
     "UPDATE password_resets SET used_at = NOW() WHERE account_id = ? AND used_at IS NULL",

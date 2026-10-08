@@ -6,7 +6,14 @@ import { useRouter } from "next/navigation";
 import { AuthField } from "../../components/AuthField";
 import CheckInReward from "../../components/CheckInReward";
 import { BrandMark, TarotCard } from "../../components/TarotVisual";
-import { signIn } from "../../lib/auth";
+import { setSession } from "../../lib/auth";
+
+// There is no /home route; "/" is the landing page.
+const HOME = "/";
+const ADMIN_CONSOLE = "/addcard";
+
+const isAdmin = (user) => user?.role === "admin";
+const afterSignIn = (user) => (isAdmin(user) ? ADMIN_CONSOLE : HOME);
 
 /**
  * `googleStatus` / `googleErrorCode` come from the query string, read by
@@ -30,6 +37,12 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
   // Signed in for real; the daily-reward modal now stands between the
   // user and the home page, for both the password and the Google path.
   const [showReward, setShowReward] = useState(false);
+  // Where the reward modal lets go of the user. Admins land in the card
+  // console: nothing in the app links to it, so before this an admin had
+  // to know the URL and type it. `role` comes from /api/auth/me, which
+  // reads it from the database — the page is only a convenience, and
+  // requireAdmin() on every /api/admin route is the real gate.
+  const [destination, setDestination] = useState(HOME);
 
   // /api/auth/google/callback sends the browser back to this page with
   // ?google=success (cookie already set) or ?error=<code>. Both are
@@ -59,7 +72,12 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
         const data = await res.json();
         const user = data.user || {};
         if (cancelled) return;
-        signIn({ name: user.name || "Seeker", email: user.email || "" });
+        setSession(user);
+        if (isAdmin(user)) {
+          router.replace(ADMIN_CONSOLE);
+          return;
+        }
+        setDestination(afterSignIn(user));
         setShowReward(true);
       } catch (err) {
         if (cancelled) return;
@@ -73,40 +91,16 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
   }, [isGoogleReturn, router]);
 
   // ---------------------------------------------------------------------
-  // LOGIN SUBMIT — TWO VERSIONS BELOW. Exactly ONE should be active
-  // (not commented out) at a time; the other stays commented out as a
-  // reference. To switch: comment out the block you're not using and
-  // uncomment the other one — don't delete either.
+  // LOGIN SUBMIT
   // ---------------------------------------------------------------------
-
-  // // ─── TEST MODE (currently ACTIVE) ───────────────────────────────────
-  // // No real backend check — any email/password combo "succeeds" after
-  // // a fake delay. Good for clicking through the app during development.
-  // // This is the code referenced in the earlier answer about what makes
-  // // the login button clickable without a real account.
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   setError("");
-  //   setLoading(true);
-  //   // Stand-in for: POST /api/auth/login
-  //   window.setTimeout(() => {
-  //     setLoading(false);
-  //     signIn({ name: email.split("@")[0] || "Seeker", email });
-  //     router.push("/category");
-  //   }, 1200);
-  // };
-
-  // //---------------------------------------------------------------------
-
-  // ─── REAL MODE (commented out) ──────────────────────────────────────
-  // Actually calls a backend endpoint and only signs the user in if the
-  // server confirms the credentials. To activate: delete/comment out
-  // the TEST MODE handleSubmit above, then uncomment this one. Adjust
-  // the fetch URL/response shape to match your real API.
-  
-  // --- CHANGED: the email + password typed here are now CHECKED BY THE
-  // SERVER before the user is allowed to reach the home page (/category).
-  // Two checks, both must pass:
+  // There used to be a second, commented-out handler here labelled "TEST
+  // MODE (currently ACTIVE)" that accepted any email and password after a
+  // fake delay. It had not been the active one for a long time — the
+  // label was simply never updated — so it has been removed rather than
+  // left to be read as the truth about how signing in works.
+  //
+  // The email and password typed here are CHECKED BY THE SERVER before
+  // the user goes anywhere. Two checks, both must pass:
   //   1. POST /api/auth/login  -> the server looks the email up in the
   //      `accounts` table and compares the password with the stored
   //      hash. Wrong email or password => it answers 401 and we stop.
@@ -144,10 +138,18 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
       // name is read from `user.name` (reading it from the top level
       // would store "undefined").
       const user = meData.user;
-      signIn({
-        name: user.name || email.split("@")[0] || "Seeker",
-        email: user.email || email,
-      });
+      // The account just came back from /api/auth/me; handing it straight
+      // to the store saves every component on the next page asking again.
+      setSession(user);
+
+      // The daily reward is coins for readings, so it is not an admin's
+      // to collect; they go straight to the console.
+      if (isAdmin(user)) {
+        router.replace(ADMIN_CONSOLE);
+        return;
+      }
+
+      setDestination(afterSignIn(user));
       setShowReward(true);
     } catch (err) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -190,7 +192,7 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
             </div>
 
             {/* Only ever populated when REAL MODE's handleSubmit sets an
-                error (TEST MODE never fails, so this stays empty/hidden). */}
+                error from the checks above. */}
             {(error || googleError) && (
               <p className="login-error">{error || googleError}</p>
             )}
@@ -228,7 +230,7 @@ export function LoginForm({ googleStatus = "", googleErrorCode = "" }) {
         <Footer />
       </section>
 
-      {showReward && <CheckInReward onCollect={() => router.push("/")} />}
+      {showReward && <CheckInReward onCollect={() => router.push(destination)} />}
     </main>
   );
 }

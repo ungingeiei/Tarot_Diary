@@ -198,8 +198,8 @@ a { color: inherit; }
 .reading-panel.is-loading { justify-content: center; align-items: center; min-height: 420px; }
 .reading-card-col { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
 .reading-card { width: 260px; }
-.reading-card-frame { width: 260px; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
-.reading-card-img { width: 100%; height: auto; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
+.reading-card-frame { width: 260px; aspect-ratio: 2 / 3; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
+.reading-card-img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
 .reading-loading { margin: 18px 0 0; font-family: var(--display); font-weight: 300; color: rgba(232,227,216,.55); font-size: 15px; letter-spacing: .04em; text-align: center; }
 .reading-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .reading-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid rgba(201,169,110,.25); }
@@ -860,8 +860,8 @@ nav a:hover {
 .reading-panel.is-loading { justify-content: center; align-items: center; min-height: 420px; }
 .reading-card-col { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; }
 .reading-card { width: 260px; }
-.reading-card-frame { width: 260px; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
-.reading-card-img { width: 100%; height: auto; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
+.reading-card-frame { width: 260px; aspect-ratio: 2 / 3; padding: 10px; border: 1px solid rgba(201,169,110,.45); border-radius: 4px; background: linear-gradient(160deg, rgba(30,25,45,.9), rgba(10,9,16,.9)); box-shadow: 0 25px 70px rgba(0,0,0,.45), inset 0 0 0 1px rgba(201,169,110,.15); }
+.reading-card-img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; display: block; box-shadow: 0 0 0 1px rgba(201,169,110,.25); }
 .reading-loading { margin: 18px 0 0; font-family: var(--display); font-weight: 300; color: rgba(232,227,216,.55); font-size: 15px; letter-spacing: .04em; text-align: center; }
 .reading-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .reading-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; margin-bottom: 20px; border-bottom: 1px solid rgba(201,169,110,.25); }
@@ -1758,6 +1758,117 @@ MANAGE CARD PAGE
     box-shadow: 0 0 15px rgba(25, 152, 146, 0.04);
 }
 
+/* The real artwork in the console's list. Same box as the placeholder
+   above so a deck with one picture missing does not break the row. */
+.manage-tarot-thumb {
+    width: 70px;
+    height: 100px;
+    flex-shrink: 0;
+    object-fit: cover;
+    display: block;
+    border: 1px solid rgba(201, 169, 110, 0.45);
+    border-radius: 2px;
+    background: #0d0d15;
+}
+
+/* ---------- File picker + dropdown inside the card console ----------
+   components/FileField.jsx and SelectField.jsx are built for the
+   profile page, where fields are a single underline. In this console a
+   field is a boxed input with a gold border, so both are reshaped to
+   match the inputs they sit beside rather than being restyled from
+   scratch. */
+
+.file-field {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 46px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    border: 1px solid rgba(201, 169, 110, 0.65);
+    background: rgba(0, 0, 0, 0.18);
+}
+
+/* Out of sight but still focusable, so the field keeps its place in the
+   tab order; `display: none` would take it off the keyboard path. */
+.file-field-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.file-field-button {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border: 1px solid rgba(201, 169, 110, 0.65);
+    background: rgba(201, 169, 110, 0.12);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.file-field-button:hover:not(:disabled) {
+    background: rgba(201, 169, 110, 0.22);
+    border-color: var(--gold);
+}
+
+/* The real input is what the browser focuses, so the ring has to be
+   drawn on the button standing in for it. */
+.file-field-input:focus-visible + .file-field-button {
+    outline: 2px solid rgba(201, 169, 110, 0.8);
+    outline-offset: 2px;
+}
+
+.file-field-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--cream);
+    font-size: 13px;
+}
+
+.file-field-name.is-empty {
+    color: rgba(232, 227, 216, 0.4);
+}
+
+.file-field.is-disabled {
+    opacity: 0.6;
+}
+
+.file-field.is-disabled .file-field-button {
+    cursor: wait;
+}
+
+/* The dropdown, boxed like the inputs instead of underlined. */
+.add-card-form .select-trigger,
+.manage-card-table .select-trigger {
+    height: 46px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    border: 1px solid rgba(201, 169, 110, 0.65);
+    background: rgba(0, 0, 0, 0.18);
+    font-size: 14px;
+}
+
+.manage-card-table .select-field {
+    min-width: 150px;
+}
+
+.manage-card-table-wrapper.is-editing {
+    overflow: visible;
+}
+
 /* ===============================CATEGORY========================================= */
 .manage-card-category {
     display: inline-flex;
@@ -2612,9 +2723,6 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     color: #fff;
 }
 /* =========================Check-in Reward========================= */
-/* Every length below is the original design scaled to ~70%: the modal
-   was tall enough to fill a laptop screen edge to edge. Proportions are
-   unchanged, so it still reads as the same panel, just smaller. */
 
 .checkin-overlay {
     position: fixed;
@@ -2629,10 +2737,10 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 
 .checkin-modal {
     position: relative;
-    width: 600px;
+    width: 850px;
     max-width: 90%;
-    min-height: 460px;
-    padding: 68px 42px 38px;
+    min-height: 650px;
+    padding: 100px 60px 55px;
     box-sizing: border-box;
 
     background: #0d0d15;
@@ -2641,7 +2749,7 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 .checkin-content {
-    width: min(480px, 100%);
+    width: min(680px, 100%);
     margin: 0 auto;
 
     display: flex;
@@ -2652,15 +2760,15 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 /* Coin balance */
 .checkin-coin-balance {
     position: absolute;
-    right: 20px;
-    top: 20px;
-    min-width: 36px;
-    height: 38px;
-    padding: 6px 18px;
+    right: 30px;
+    top: 30px;
+    min-width: 50px;
+    height: 54px;
+    padding: 8px 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 20px;
     background: #08080d;
     border-radius: 45px;
     box-shadow:
@@ -2671,33 +2779,33 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .checkin-coin-balance > span {
     color: #ae8419;
     font-family: "Oranienbaum", serif;
-    font-size: 21px;
+    font-size: 30px;
 }
 
 .checkin-coin {
-    width: 23px;
-    height: 23px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     background: #e8af3e;
-    border: 2px solid #f7c74e;
+    border: 3px solid #f7c74e;
     box-shadow:
-        inset 0 0 0 3px rgba(121, 78, 15, 0.25),
+        inset 0 0 0 4px rgba(121, 78, 15, 0.25),
         0 0 8px rgba(240, 201, 104, 0.3);
 }
 
 .checkin-coin svg {
-    width: 21px;
-    height: 21px;
+    width: 30px;
+    height: 30px;
 }
 
 /* Title */
 .checkin-content h1 {
-    margin: 0 0 34px;
+    margin: 0 0 50px;
     color: #f1eac7;
     font-family: "Oranienbaum", serif;
-    font-size: 28px;
+    font-size: 40px;
     font-weight: 200;
     letter-spacing: 1px;
 }
@@ -2706,22 +2814,22 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 .checkin-rewards {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(4, 68px);
+    grid-template-columns: repeat(4, 96px);
     justify-content: space-between;
-    row-gap: 32px;
+    row-gap: 50px;
 }
 
 .checkin-day {
-    width: 68px;
-    height: 92px;
+    width: 96px;
+    height: 130px;
     border: 2px solid #77777f;
-    border-radius: 12px;
+    border-radius: 17px;
     background: #27272f;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 13px;
+    gap: 20px;
 }
 
 .checkin-day.active {
@@ -2730,13 +2838,13 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 .checkin-day-coin {
-    width: 37px;
-    height: 37px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     background: #55555a;
-    border: 2px solid #77777a;
+    border: 3px solid #77777a;
 }
 
 .checkin-day.active .checkin-day-coin {
@@ -2745,14 +2853,14 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 .checkin-day-coin svg {
-    width: 21px;
-    height: 21px;
+    width: 30px;
+    height: 30px;
 }
 
 .checkin-day-label {
     color: #85858a;
     font-family: "Oranienbaum", serif;
-    font-size: 13px;
+    font-size: 18px;
     letter-spacing: 0.5px;
 }
 
@@ -2760,50 +2868,39 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     color: #d8b86d;
 }
 
-/* The amount never had a rule of its own, so it kept the body font size
-   and now looks oversized next to the scaled-down card. */
-.checkin-day-amount {
-    font-size: 13px;
-}
-
 /* Streak */
 .checkin-streak {
-    margin-top: 40px;
-    height: 30px;
-    padding: 0 20px;
+    margin-top: 60px;
+    height: 40px;
+    padding: 0 30px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     border: 1px solid #9d875f;
     border-radius: 24px;
     background: #574f3e;
     color: #f2eee8;
-    font-size: 13px;
-    letter-spacing: 3.5px;
-}
-
-/* Keeps the badge's space in the layout while it has nothing to say. */
-.checkin-streak.is-empty {
-    visibility: hidden;
+    font-size: 18px;
+    letter-spacing: 5px;
 }
 
 .streak-lightning {
     color: #f2d45b;
-    font-size: 18px;
+    font-size: 25px;
 }
 
 /* Collect */
 .checkin-collect-btn {
-    width: 350px;
+    width: 500px;
     max-width: 100%;
-    height: 52px;
-    margin-top: 40px;
+    height: 75px;
+    margin-top: 58px;
     border: none;
-    border-radius: 12px;
+    border-radius: 17px;
     background: #87672f;
     color: #ffffff;
     font-family: "Oranienbaum", serif;
-    font-size: 21px;
+    font-size: 30px;
     letter-spacing: 1px;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.2s ease;
@@ -2854,8 +2951,10 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     left: 50%;
     top: 50%;
     width: 195px;
-    /* transform, opacity and z-index are all set from JS each frame; no
-       transition here, or it would fight the per-frame updates. */
+    /* transform, opacity and z-index are all set from JS each frame, so
+       the transition the plain .card-pick rule sets is cleared here: it
+       would lag a position that is already being written every frame. */
+    transition: none;
     will-change: transform, opacity;
 }
 
@@ -2934,6 +3033,134 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     .card-ring {
         height: 320px;
         transform: scale(.72);
+    }
+}
+
+/* =========================
+   Not Enough Coins Popup
+   ========================= */
+
+.not-enough-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+}
+
+.not-enough-modal {
+    width: min(650px, calc(100% - 100px));
+    min-height: 200px;
+    padding: 45px;
+    box-sizing: border-box;
+    background: #0b0b10;
+    border: 2px solid #d9362a;
+    border-radius: 30px;
+    box-shadow:
+        0 25px 70px rgba(0, 0, 0, 0.7);
+}
+
+.not-enough-modal h2 {
+    margin: 0;
+    color: #e34637;
+    font-family: "Oranienbaum", serif;
+    font-size: 35px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.not-enough-divider {
+    width: 100%;
+    height: 2px;
+    margin: 25px auto 30px;
+    background: #f4f0e8;
+}
+
+.not-enough-message {
+    text-align: center;
+}
+
+.not-enough-message p {
+    margin: 0;
+    color: #f4f0e8;
+    font-family: "Oranienbaum", serif;
+    font-size: 25px;
+    line-height: 1.5;
+}
+
+.not-enough-message .not-enough-highlight {
+    color: #d8a936;
+    font-size: 25px;
+}
+
+/* =========================Coins page=========================
+   /coins — the balance, the streak, and the way back to the daily
+   check-in. It reuses the category page's heading and the gold button;
+   only the panel below them is its own. */
+
+.coins-page {
+    display: flex;
+    flex-direction: column;
+}
+
+.coins-panel {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 40px 24px 120px;
+    text-align: center;
+}
+
+.coins-balance {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* The same coin as the header's pill, drawn larger: this is the number
+   the page is about, not a badge in a corner. */
+.coins-balance .coin {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f0d9a0, #c9a355);
+    display: grid;
+    place-items: center;
+    color: #5b3d12;
+    flex-shrink: 0;
+}
+
+.coins-balance .coin svg {
+    width: 28px;
+    height: 28px;
+}
+
+.coins-balance-amount {
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: clamp(44px, 8vw, 64px);
+    line-height: 1;
+    color: var(--gold);
+}
+
+.coins-streak {
+    margin: 0 0 14px;
+    font-family: var(--display);
+    font-weight: 300;
+    font-size: 15px;
+    letter-spacing: .04em;
+    color: rgba(232, 227, 216, .55);
+}
+
+@media (max-width: 900px) {
+    .coins-panel {
+        padding: 32px 20px 100px;
     }
 }
 
@@ -3233,4 +3460,35 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 
 .date-selects .select-field:last-child {
     flex: 1;
+}
+.not-enough-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 190px;
+    margin-top: 50px;
+}
+
+.not-enough-actions button {
+    width: 300px;
+    height: 50px;
+    border-radius: 22px;
+    font-family: "Oranienbaum", serif;
+    font-size: 25px;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.not-enough-cancel {
+    color: #ffffff;
+    background: #a82a1c;
+    border: 1px solid #a82a1c;
+}
+
+.not-enough-get-coins {
+    color: #ffffff;
+    background: #87d9d2;
+    border: 1px solid #87d9d2;
 }

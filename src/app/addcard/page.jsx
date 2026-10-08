@@ -7,9 +7,27 @@ import {
     CloseXIcon,
     TarotCard,
 } from "../../components/TarotVisual";
+import { SelectField } from "../../components/SelectField";
+import { FileField } from "../../components/FileField";
+import { useAdminOnly } from "../../lib/auth";
+
+// One list for the add form and the edit row, which each had their own
+// copy of the same eight <option>s. In the order lib/cardQueries.js
+// keeps them: the three periods, then the five categories. The form
+// used to read Daily / Monthly / Weekly, which is not an order anyone
+// looks for.
+const CATEGORY_OPTIONS = [
+    "Daily", "Weekly", "Monthly",
+    "Love", "Finance", "Career", "Pets", "Health",
+];
 
 
 export default function ManageCardPage() {
+    // A signed-in user who types this URL is sent back to the app. The
+    // API refuses them anyway (requireAdmin reads the role from the
+    // database); this is only so they do not sit on an empty console.
+    useAdminOnly();
+
     const [menuOpen, setMenuOpen] = useState(false);
     const [showAddCard, setShowAddCard] = useState(false);
 
@@ -44,6 +62,9 @@ export default function ManageCardPage() {
     }, []);
 
     useEffect(() => {
+        // Reports a synchronous setState, but there is none: loadCards() only ever
+        // sets state after awaiting the request, in a promise continuation.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         loadCards();
     }, [loadCards]);
 
@@ -71,6 +92,7 @@ export default function ManageCardPage() {
         setShowAddCard(true);
         setAdvice("");
         setImage("");
+        setImageName("");
         setTimeOrCategory("Daily");
     };
     // =====================================CANCEL ADD CARD=====================================
@@ -83,6 +105,7 @@ export default function ManageCardPage() {
         setShowAddCard(false);
         setAdvice("");
         setImage("");
+        setImageName("");
         setTimeOrCategory("Daily");
     };
 
@@ -104,6 +127,10 @@ export default function ManageCardPage() {
         }
     };
 
+    // Only for display next to the Choose image button; the upload itself
+    // answers with the stored path, which is what `image` holds.
+    const [imageName, setImageName] = useState("");
+
     // Uploading on change rather than on submit keeps the save request
     // plain JSON, and shows the admin straight away whether the image
     // was accepted instead of failing after they filled the whole form.
@@ -111,8 +138,11 @@ export default function ManageCardPage() {
         const file = event.target.files?.[0];
         if (!file) {
             setImage("");
+            setImageName("");
             return;
         }
+
+        setImageName(file.name);
 
         setUploading(true);
         setLoadError("");
@@ -126,6 +156,7 @@ export default function ManageCardPage() {
             if (!res.ok || !data.success) {
                 setLoadError(data.message || "Could not upload the image.");
                 setImage("");
+                setImageName("");
                 event.target.value = "";
                 return;
             }
@@ -134,6 +165,7 @@ export default function ManageCardPage() {
         } catch {
             setLoadError("Could not upload the image.");
             setImage("");
+            setImageName("");
         } finally {
             setUploading(false);
         }
@@ -324,7 +356,13 @@ export default function ManageCardPage() {
                 </button>
             </section>
             {/* =====================================CARD TABLE===================================== */}
-            <section className="manage-card-table-wrapper">
+            {/* While a row is being edited its category dropdown opens a
+                panel that the wrapper's own overflow would cut off. The
+                clipping is only there to let a wide table scroll
+                sideways, which is not what an open dropdown needs. */}
+            <section
+                className={`manage-card-table-wrapper${editingCardId ? " is-editing" : ""}`}
+            >
                 <table className="manage-card-table">
 
                     <thead>
@@ -361,12 +399,30 @@ export default function ManageCardPage() {
                                         ) : (
                                             <div className="manage-card-name">
 
-                                                <TarotCard
-                                                    title={
-                                                        card.title
-                                                    }
-                                                    className="manage-tarot-card"
-                                                />
+                                                {/* The card's real artwork, the same
+                                                    file /reading and /draw show. The
+                                                    placeholder below is only for a row
+                                                    whose picture is missing — the table
+                                                    used to draw it for every card, so
+                                                    the deck looked like mock data even
+                                                    though every word beside it came
+                                                    from the database. */}
+                                                {card.image ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={card.image}
+                                                        alt={card.name}
+                                                        className="manage-tarot-thumb"
+                                                        loading="lazy"
+                                                    />
+                                                ) : (
+                                                    <TarotCard
+                                                        title={
+                                                            card.title
+                                                        }
+                                                        className="manage-tarot-card"
+                                                    />
+                                                )}
                                                 <span>
                                                     {
                                                         card.name
@@ -382,19 +438,13 @@ export default function ManageCardPage() {
                                     {/* TIME & CATEGORY */}
                                     <td>
                                         {isEditing ? (
-                                            <select value={editTimeOrCategory}
-                                                onChange={(event) => setEditTimeOrCategory(event.target.value)
-                                                }
-                                            >
-                                                <option value="Daily">Daily</option>
-                                                <option value="Monthly">Monthly</option>
-                                                <option value="Weekly">Weekly</option>
-                                                <option value="Love">Love</option>
-                                                <option value="Health">Health</option>
-                                                <option value="Pets">Pets</option>
-                                                <option value="Finance">Finance</option>
-                                                <option value="Career">Career</option>
-                                            </select>
+                                            <SelectField
+                                                value={editTimeOrCategory}
+                                                onChange={setEditTimeOrCategory}
+                                                options={CATEGORY_OPTIONS}
+                                                ariaLabel="Time or category"
+                                                compact
+                                            />
                                         ) : (
                                             <span>{card.category}</span>
                                         )}
@@ -560,11 +610,14 @@ export default function ManageCardPage() {
                                         is chosen, and what is kept in state is
                                         the path the upload answers with — that
                                         is what `cards.pict` stores. */}
-                                    <input
-                                        type="file"
+                                    <FileField
                                         accept="image/jpeg,image/png,image/webp,image/gif"
                                         disabled={uploading}
                                         onChange={handleImageChange}
+                                        fileName={imageName}
+                                        label="Choose image"
+                                        emptyText="JPEG, PNG, WebP or GIF"
+                                        ariaLabel="Card image"
                                     />
 
                                     {uploading && <p className="add-card-hint">Uploading…</p>}
@@ -581,46 +634,12 @@ export default function ManageCardPage() {
                                 <div className="add-card-column">
                                     <label>TIME OR CATEGORY</label>
 
-                                    <select
+                                    <SelectField
                                         value={timeOrCategory}
-                                        onChange={(event) =>
-                                            setTimeOrCategory(
-                                                event.target.value
-                                            )
-                                        }
-                                    >
-                                        <option value="Daily">
-                                            Daily
-                                        </option>
-
-                                        <option value="Monthly">
-                                            Monthly
-                                        </option>
-
-                                        <option value="Weekly">
-                                            Weekly
-                                        </option>
-
-                                        <option value="Love">
-                                            Love
-                                        </option>
-
-                                        <option value="Health">
-                                            Health
-                                        </option>
-
-                                        <option value="Pets">
-                                            Pets
-                                        </option>
-
-                                        <option value="Finance">
-                                            Finance
-                                        </option>
-
-                                        <option value="Career">
-                                            Career
-                                        </option>
-                                    </select>
+                                        onChange={setTimeOrCategory}
+                                        options={CATEGORY_OPTIONS}
+                                        ariaLabel="Time or category"
+                                    />
 
                                 </div>
 
