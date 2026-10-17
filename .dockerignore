@@ -1,0 +1,15 @@
+# Everything the image does not need. Keeping these out makes the build
+# faster and, for .env, keeps secrets out of the image entirely —
+# configuration reaches the container through ECS task environment
+# variables instead (see infra/terraform/ecs.tf).
+.git
+.github
+node_modules
+.next
+npm-debug.log
+.env
+.env.*
+*.md
+infra
+public/database
+scripts

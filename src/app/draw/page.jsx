@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "../../components/Header";
 import { TarotCard, SparkleIcon } from "../../components/TarotVisual";
 import { useUserOnly } from "../../lib/auth";
+import NotEnoughCoins from "../../components/NotEnoughCoins";
 
 const CARD_COUNT = 5;
 
@@ -75,6 +76,11 @@ function DrawContent() {
   // boxed inside it or cropped to fill it.
   const [faceRatio, setFaceRatio] = useState(null);
   const [error, setError] = useState("");
+  // Running out of coins is not an error in the same sense as a dropped
+  // request: there is something to do about it, so it gets the panel
+  // with the way out rather than a line of red text. Same component the
+  // reading page uses for the same refusal.
+  const [showNotEnoughCoins, setShowNotEnoughCoins] = useState(false);
 
   const cardRefs = useRef([]);
   const frameRef = useRef(0);
@@ -190,6 +196,7 @@ function DrawContent() {
 
     setRevealing(true);
     setError("");
+    setShowNotEnoughCoins(false);
     setDrawn(null);
     setFaceRatio(null);
     setPhase("spinning");
@@ -215,13 +222,15 @@ function DrawContent() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        setError(
-          data.reason === "NOT_ENOUGH_COINS"
-            ? "You don't have enough coins for another reading."
-            : res.status === 401
+        if (data.reason === "NOT_ENOUGH_COINS" || res.status === 402) {
+          setShowNotEnoughCoins(true);
+        } else {
+          setError(
+            res.status === 401
               ? "Please sign in to draw a card."
               : data.message || "Could not draw a card. Please try again."
-        );
+          );
+        }
         cancelAnimationFrame(frameRef.current);
         applyOffset(0);
         setPhase("idle");
@@ -324,6 +333,16 @@ function DrawContent() {
           {revealing ? "Revealing…" : "Reveal Your Cards"}
         </button>
       </section>
+
+      {showNotEnoughCoins && (
+        <NotEnoughCoins
+          onCancel={() => setShowNotEnoughCoins(false)}
+          onGetCoins={() => {
+            setShowNotEnoughCoins(false);
+            router.push("/coins");
+          }}
+        />
+      )}
     </main>
   );
 }

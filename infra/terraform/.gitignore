@@ -1,0 +1,8 @@
+# State holds the database password and the JWT secret in clear text.
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+# Your real values. terraform.tfvars.example is the one that is committed.
+*.tfvars
+!*.tfvars.example

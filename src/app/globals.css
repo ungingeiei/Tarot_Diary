@@ -66,6 +66,38 @@ a { color: inherit; }
 .forgot-row button { border: 0; background: transparent; color: rgba(201,169,110,.52); padding: 0; font-size: 11px; cursor: pointer; }
 .forgot-row button:hover { color: var(--gold); }
 .login-error { margin: -4px 0 0; color: #FF5053; font-size: 12.5px; }
+/* FIELD CONDITION LIST (components/FieldRules.jsx)
+   The live rules under the password / email boxes on /register and
+   /reset-password. Green = met, grey = still to do. Never red: red is
+   .login-error, i.e. "the form refused you", and these are only
+   conditions the user has not finished meeting yet.
+   The -4px top margin pulls the list up against the field above it, the
+   same way .login-error does, so it reads as part of that field. */
+.field-rules { margin: -4px 0 0; transition: opacity .2s ease; }
+.field-rules.pending { opacity: .5; }
+.field-rules-title { margin: 0 0 6px; color: var(--muted); font-size: 10px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+.field-rules ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.field-rules li { display: flex; align-items: flex-start; gap: 7px; color: rgba(107,103,117,.9); font-size: 11.5px; line-height: 1.45; font-weight: 300; transition: color .2s ease; }
+.field-rules li.met { color: #7fc99a; }
+.field-rules .rule-mark { flex: none; width: 12px; text-align: center; font-size: 10.5px; line-height: 1.6; }
+
+/* PIN / OTP BOX (/reset-password step 1)
+   Six digits, so the input is centred and widely spaced rather than
+   reading like ordinary prose. Everything else is inherited from
+   .input-shell, and the rule is scoped to .pin-field so no other
+   AuthField is affected. */
+.pin-field .input-shell input { text-align: center; letter-spacing: .5em; font-size: 18px; padding-right: 39px; caret-color: var(--gold); }
+/* Much dimmer than a normal placeholder: the text is centred, so the
+   caret lands in the MIDDLE of the hint and a placeholder at the usual
+   weight reads as digits that have already been typed. It has to look
+   unmistakably like an empty box. */
+.pin-field .input-shell input::placeholder { letter-spacing: .5em; font-size: 18px; color: rgba(107,103,117,.3); }
+.pin-note { margin: -4px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.6; font-weight: 300; }
+.pin-note strong { color: rgba(232,227,216,.82); font-weight: 400; }
+/* The "SMTP is not set, look in your terminal" notice. Gold, not red:
+   nothing has gone wrong, the developer just has no mail server yet. */
+.pin-dev-note { margin: -4px 0 0; padding: 9px 11px; border: 1px dashed rgba(201,169,110,.3); border-radius: 2px; color: rgba(201,169,110,.8); font-size: 11.5px; line-height: 1.6; }
+
 .gold-button { width: 100%; border: 1px solid rgba(201,169,110,.35); border-radius: 2px; padding: 14px 16px; margin-top: 4px; background: linear-gradient(135deg, #c9a96e 0%, #b8935a 100%); color: #09090f; font-size: 11px; font-weight: 600; letter-spacing: .2em; cursor: pointer; transition: transform .2s, box-shadow .2s, opacity .2s; }
 .gold-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(201,169,110,.18); }
 .gold-button:disabled { opacity: .42; cursor: wait; }

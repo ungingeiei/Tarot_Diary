@@ -34,6 +34,7 @@ const USER_ITEMS = [
   { label: "ABOUT", path: "/about" },
   { label: "PROFILE", path: "/profile" },
   { label: "DIARY", path: "/diary" },
+  { label: "COINS", path: "/coins" },
 ];
 
 const ADMIN_ITEMS = [

@@ -5,39 +5,59 @@
  * Called by app/forgot-password/page.jsx (the GO TO RESET PASSWORD button).
  *
  * Body:     { email }
- * Response: { success: true, token }          -> the email is registered
- *           { success: false, message } (404)  -> no account with that email
+ * Response: { success: true, token, delivery, maskedEmail, minutes }
+ *                                              -> the email is registered
+ *           { success: false, message } (404)   -> no account with that email
+ *           { success: false, message } (502)   -> the PIN could not be mailed
  *
  * What it does:
  *   1. Looks the email up in the `accounts` table (via lib/passwordReset).
- *   2. If the account exists, creates a one-time reset token in the
- *      database and sends it back in the response. The page then opens
- *      /reset-password?token=... straight away.
+ *   2. If the account exists, creates a one-time reset request: a token
+ *      AND a 6-digit PIN.
+ *   3. Mails the PIN to that address (lib/mailer.js) and returns the
+ *      token, so the page can open /reset-password?token=... at once.
  *
- * NO EMAIL IS SENT and NO CODE IS ASKED. Many emails used to register are
- * not real mailboxes, so a normal "check your inbox" flow cannot work for
- * them. The trade-off: anyone who knows a registered email can set a new
- * password for it. Fine for testing; add an email/code check before real use.
+ * --- CHANGED: THE TOKEN IS NO LONGER THE WHOLE RESET -----------------
+ * This route used to hand back a token that was, by itself, permission
+ * to set a new password — so anyone who knew a registered email could
+ * take over that account. It now also mails a PIN, and
+ * /api/auth/reset-password refuses to save anything until that PIN has
+ * been typed back. The token proves the reset started in this browser;
+ * the PIN proves the person owns the mailbox. Neither is enough alone.
  *
- * Because the token is handed straight back, every REQUEST is counted, not
- * just the ones that fail: a success is exactly what an attacker wants, so
- * counting failures only — the way /api/auth/login does — would leave this
- * route unlimited for the one case that matters. Three tries per email and
- * ten per IP in fifteen minutes still leaves room for someone who mistypes
- * their own address, while a script walking a list of emails is stopped.
- * It does NOT make the flow safe, only slow; the email check above is what
- * would.
+ * This is what register's new "must be a Google-hosted address" rule
+ * (lib/validators/email.js) buys: every account's email is a mailbox
+ * that can actually receive the PIN, which is why mailing one is now a
+ * flow that works rather than the dead end it used to be.
  *
- * Needs no SMTP_* or APP_URL settings any more.
+ * `delivery` tells the page where the PIN went: "email", or "console"
+ * when SMTP_HOST is unset and lib/mailer.js printed it in the terminal
+ * instead (development only — see the warning in that file).
+ *
+ * Every REQUEST is rate-limited, not just the ones that fail: a success
+ * is exactly what an attacker wants, so counting failures only — the way
+ * /api/auth/login does — would leave this route unlimited for the one
+ * case that matters. Three tries per email and ten per IP in fifteen
+ * minutes still leaves room for someone who mistypes their own address,
+ * while a script walking a list of emails is stopped.
+ *
+ * Needs SMTP_* in .env.local to really send mail; without them the PIN
+ * appears in the `npm run dev` terminal.
  * ---------------------------------------------------------------------
  */
 
-import { findAccountByEmail, createResetToken } from "@/lib/passwordReset";
+import {
+  findAccountByEmail,
+  createResetRequest,
+  maskEmail,
+  RESET_LIFETIME_MINUTES,
+} from "@/lib/passwordReset";
+import { sendResetPin } from "@/lib/mailer";
 import { checkRateLimit, getClientIp, recordFailure } from "@/lib/rateLimit";
 
 const WINDOW_MS = 15 * 60 * 1000; // counting window: 15 minutes
-const MAX_PER_EMAIL = 3; // reset tokens one email may be handed in that window
-const MAX_PER_IP = 10; // reset tokens one IP may ask for, across all emails
+const MAX_PER_EMAIL = 3; // reset requests one email may start in that window
+const MAX_PER_IP = 10; // reset requests one IP may start, across all emails
 
 export async function POST(request) {
   try {
@@ -95,19 +115,45 @@ export async function POST(request) {
       );
     }
 
-    // Make the one-time token (valid 30 minutes) and hand it to the page.
-    const token = await createResetToken(account.id);
+    // Make the one-time token + PIN (both valid 30 minutes).
+    const { token, pin } = await createResetRequest(account.id);
 
     // Safety net: a real token is exactly 64 hex characters. Anything else means an OLD
-    // src/lib/passwordReset.js is still in the project (it returned an object, not text),
-    // which would make the reset page open with a broken address. The terminal shows this message.
+    // src/lib/passwordReset.js is still in the project, which would make the reset page
+    // open with a broken address. The terminal shows this message.
     if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token)) {
       throw new Error(
-        "createResetToken() did not return a 64-character token. Replace src/lib/passwordReset.js with the new version."
+        "createResetRequest() did not return a 64-character token. Replace src/lib/passwordReset.js with the new version."
       );
     }
 
-    return Response.json({ success: true, token });
+    // --- ADDED: mail the PIN. The token is only returned if this worked:
+    // sending the user to a page that asks for a PIN they will never
+    // receive would be worse than failing here, where we can say so.
+    const { delivery } = await sendResetPin({
+      to: account.email,
+      pin,
+      minutes: RESET_LIFETIME_MINUTES,
+    });
+
+    if (delivery === "failed") {
+      return Response.json(
+        {
+          success: false,
+          message:
+            "We couldn't send your reset PIN just now. Please try again in a few minutes.",
+        },
+        { status: 502 }
+      );
+    }
+
+    return Response.json({
+      success: true,
+      token,
+      delivery, // "email" | "console"
+      maskedEmail: maskEmail(account.email),
+      minutes: RESET_LIFETIME_MINUTES,
+    });
   } catch (error) {
     console.error("Forgot password API error:", error);
     return Response.json(

@@ -16,6 +16,10 @@
  *   const { valid, errors } = validatePassword(rawPassword);
  *   if (!valid) { // show `errors` to the user, do NOT save }
  *
+ *   // --- ADDED: for the live checklist under the password field ---
+ *   import { checkPasswordRules } from "@/lib/validators/password";
+ *   checkPasswordRules(rawPassword);  // every rule + whether it is met
+ *
  * Note: this only checks the password's *shape*. Actual saving to the
  * database should still hash the password (e.g. bcrypt/argon2) — never
  * store it as plain text, even after it passes these rules.
@@ -72,6 +76,32 @@ export function validatePassword(password) {
   );
 
   return { valid: errors.length === 0, errors };
+}
+
+/**
+ * --- ADDED -------------------------------------------------------------
+ * Every rule with its CURRENT state, in a fixed order.
+ *
+ * validatePassword() only reports the rules that FAIL, which is what the
+ * server wants. The register / reset-password pages want the opposite:
+ * the whole list from the moment the field is focused — including the
+ * rules already satisfied — so the user can watch them tick off instead
+ * of guessing why the form keeps refusing.
+ *
+ * `met` is false for everything while the box is still empty, so the
+ * checklist reads as "nothing done yet" rather than as five errors.
+ *
+ * @param {string} password
+ * @returns {{ key: string, message: string, met: boolean }[]}
+ * -----------------------------------------------------------------------
+ */
+export function checkPasswordRules(password) {
+  const pwd = typeof password === "string" ? password : "";
+  return PASSWORD_RULES.map((rule) => ({
+    key: rule.key,
+    message: rule.message,
+    met: pwd.length > 0 && rule.test(pwd),
+  }));
 }
 
 /**

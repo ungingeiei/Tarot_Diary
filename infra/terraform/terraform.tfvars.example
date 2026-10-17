@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------
+# terraform.tfvars.example
+# ---------------------------------------------------------------------
+# Copy to terraform.tfvars and fill in. terraform.tfvars is gitignored
+# because it holds the database password and the JWT secret.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+# ---------------------------------------------------------------------
+
+project_name = "tarot-diary"
+
+# Learner Lab allows only us-east-1 and us-west-2. The architecture
+# diagram's ap-southeast-1 will be refused.
+aws_region = "us-east-1"
+
+# ----- Secrets -----
+# Generate the JWT secret with:  openssl rand -hex 32
+# Do not reuse the one from local .env.
+db_password = "CHANGE_ME_min_8_chars_no_slash_at_or_quote"
+jwt_secret  = "CHANGE_ME_openssl_rand_hex_32"
+
+# ----- Cost control (the defaults already favour the lab budget) -----
+# A NAT Gateway is ~$32/month each. The diagram shows two; one is the
+# default. Set BOTH of the next two lines to drop NAT entirely and save
+# the whole amount, at the cost of putting the instances on public IPs.
+nat_gateway_count     = 1
+ecs_in_public_subnets = false
+
+instance_type      = "t3.small"
+ecs_instance_count = 2
+app_count          = 2
+
+db_instance_class = "db.t3.micro"
+db_multi_az       = false # true doubles the database bill
+
+# ----- The image -----
+# LEAVE EMPTY ON THE FIRST APPLY. The ECR repository does not exist yet,
+# so there is nothing to push. Apply, push, then put the URL here and
+# apply again. `tofu output docker_push_commands` prints the commands.
+app_image = ""
+
+# ----- Card images (Neon object store, NOT AWS S3) -----
+# Copy these from your local .env so the deployed app serves the same
+# images. The key starts with nak_ — it is a Neon key, not an AWS one.
+neon_s3_endpoint          = ""
+neon_s3_access_key_id     = ""
+neon_s3_secret_access_key = ""
+neon_s3_region            = "us-east-2"
+
+# ----- Mail (SMTP) -----
+# Copy these straight from your local .env — the same Gmail account and
+# the same 16-character App password work from ECS unchanged.
+# Outbound 465/587 from the tasks is allowed (AWS blocks only port 25),
+# but it still needs a route out: with nat_gateway_count = 0 you must
+# also set ecs_in_public_subnets = true, or nothing can be sent.
+mail_transport = "smtp"
+smtp_host      = "smtp.gmail.com"
+smtp_port      = 465
+smtp_user      = "CHANGE_ME@gmail.com"
+smtp_password  = "CHANGE_ME_16_char_app_password"
+mail_from      = "Tarot Diary <CHANGE_ME@gmail.com>"
+# Gmail allows about 500 messages a day on a free account. Fine for a
+# lab; a real site outgrows it.
