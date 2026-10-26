@@ -27,11 +27,13 @@ import {
   STATE_COOKIE,
   VERIFIER_COOKIE,
 } from "@/lib/googleOAuth";
+import { publicUrl } from "@/lib/publicUrl";
 
 /** Every failure path lands the user back on /login with a reason. */
 function redirectToLogin(request, error) {
   return Response.redirect(
-    new URL(`/login?error=${encodeURIComponent(error)}`, request.url),
+    // Not request.url — see lib/publicUrl.js.
+    publicUrl(request, `/login?error=${encodeURIComponent(error)}`),
     302
   );
 }
@@ -90,7 +92,7 @@ export async function GET(request) {
     // forwards to /category. Going straight to /category would set the
     // real session cookie but leave the localStorage-based Header
     // still showing a signed-out state.
-    return Response.redirect(new URL("/login?google=success", request.url), 302);
+    return Response.redirect(publicUrl(request, "/login?google=success"), 302);
   } catch (error) {
     console.error("Google OAuth callback error:", error);
     return redirectToLogin(request, "google_failed");

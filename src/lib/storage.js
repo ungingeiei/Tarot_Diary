@@ -2,14 +2,33 @@
  * ---------------------------------------------------------------------
  * lib/storage.js — object storage for uploaded card images
  * ---------------------------------------------------------------------
- * Talks to the Neon object store, which speaks the S3 API.
+ * Talks to EITHER Amazon S3 or any store that speaks the S3 API. One
+ * setting decides which:
+ *
+ *   AWS_ENDPOINT_URL_S3 SET    -> that endpoint (Neon, MinIO, …).
+ *                                 Needs an access key and secret.
+ *   AWS_ENDPOINT_URL_S3 UNSET  -> Amazon S3 itself. Credentials come
+ *                                 from the SDK's normal chain, which on
+ *                                 ECS is the task's IAM role — so
+ *                                 nothing secret is configured at all.
+ *
+ * --- CHANGED: this used to be Neon only, with the keys required.
+ * Deployed on AWS the app now uses real S3 and the task role (see
+ * infra/terraform/s3.tf), which is why the keys became optional rather
+ * than being swapped for different ones. Local development can keep
+ * pointing at Neon by leaving AWS_ENDPOINT_URL_S3 in .env, so nothing
+ * has to change on a laptop.
+ *
+ * Images already in Neon do not move by themselves — a card uploaded
+ * before the switch 404s until scripts/mirror-storage.mjs has copied
+ * them across.
  *
  * .env:
- *   AWS_ENDPOINT_URL_S3   https://<project>.storage.<region>.aws.neon.tech
- *   AWS_ACCESS_KEY_ID
- *   AWS_SECRET_ACCESS_KEY
- *   AWS_REGION
- *   S3_BUCKET             optional, defaults to "cloudnarok"
+ *   S3_BUCKET             bucket name, defaults to "cloudnarok"
+ *   AWS_REGION            e.g. us-east-1
+ *   AWS_ENDPOINT_URL_S3   only for a non-AWS store; omit for real S3
+ *   AWS_ACCESS_KEY_ID     only when an endpoint is set, or when running
+ *   AWS_SECRET_ACCESS_KEY against AWS from a laptop
  *
  * OBJECTS ARE PRIVATE AND STAY PRIVATE. The bucket answers 403 to an
  * unsigned GET, and it rejects the `public-read` ACL outright
@@ -27,22 +46,41 @@ export const BUCKET = process.env.S3_BUCKET || "cloudnarok";
 
 let client = null;
 
-/** Null when the bucket is not configured, so callers can say so. */
+/** Null when storage is not configured, so callers can say so. */
 export function getS3() {
   const endpoint = process.env.AWS_ENDPOINT_URL_S3;
   const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
   const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
-  if (!endpoint || !accessKeyId || !secretAccessKey) return null;
+  // A custom endpoint means a store that is not AWS, and those have no
+  // role to borrow — without a key there is nothing to try.
+  if (endpoint && !(accessKeyId && secretAccessKey)) return null;
 
   if (!client) {
     client = new S3Client({
       region: process.env.AWS_REGION || "us-east-1",
-      endpoint,
-      credentials: { accessKeyId, secretAccessKey },
-      // The endpoint is the project, not a bucket host, so the bucket
-      // belongs in the path rather than the subdomain.
-      forcePathStyle: true,
+
+      // Only set when talking to a non-AWS store. Passing endpoint:
+      // undefined to the SDK is the same as not passing it, so real S3
+      // resolves its own regional endpoint.
+      ...(endpoint
+        ? {
+            endpoint,
+            // The endpoint is the project, not a bucket host, so the
+            // bucket belongs in the path rather than the subdomain.
+            // Real S3 wants the opposite (bucket as a subdomain), which
+            // is why this is tied to the endpoint.
+            forcePathStyle: true,
+          }
+        : {}),
+
+      // Explicit keys when given; otherwise leave `credentials` unset so
+      // the SDK walks its normal chain and finds the ECS task role. That
+      // absence is the whole point — it is what makes the deployed app
+      // carry no storage secret.
+      ...(accessKeyId && secretAccessKey
+        ? { credentials: { accessKeyId, secretAccessKey } }
+        : {}),
     });
   }
   return client;

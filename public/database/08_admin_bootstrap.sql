@@ -1,73 +1,73 @@
 -- =====================================================================
 -- 08_admin_bootstrap.sql — making the first admin
 -- =====================================================================
--- There is no "admin sign-up" and no admin login page. An admin is an
--- ordinary account with one column changed:
+-- An admin is an ordinary account with one column changed:
 --
 --     accounts.role = 'admin'
 --
--- They sign in at /login like anyone else. lib/apiAuth.js re-reads `role`
--- from this table on every request and never trusts the session token for
--- it, so the change takes effect on the next request — no need to sign
--- out and back in.
+-- They sign in at /login like anyone else. lib/apiAuth.js re-reads
+-- `role` from this table on every request and never trusts the session
+-- token for it, so a change takes effect on the next request.
 --
 -- Nothing in the app can grant it: /api/auth/register and the Google
 -- callback both write 'user' literally, and no route updates `role`.
 -- That is deliberate — an endpoint that hands out admin is an endpoint
--- someone can call — but it does mean the FIRST admin has to be made by
--- hand, which is what this file is for.
+-- someone can call — so the first admin has to be made here.
 --
 -- It unlocks /addcard (the card console) and every route behind
 -- requireAdmin(): /api/admin/cards and /api/admin/cards/image.
+--
+-- ---------------------------------------------------------------------
+-- --- CHANGED: this file used to have every statement commented out.
+-- ---------------------------------------------------------------------
+-- It ran, reported success, and created nothing — so a fresh database
+-- (every `destroy` then `deploy` makes one) came up with no way to
+-- reach the admin console at all. It now really creates the account.
+--
+--     email     admin@tarotdiary.com
+--     password  P@ssw0rd1111
+--
+-- ⚠️  THAT PASSWORD IS IN A COMMITTED FILE, so it is public to anyone
+-- who can read this repository, and the same on every deployment. That
+-- is acceptable for coursework on a throwaway lab account and is NOT
+-- acceptable anywhere real. On anything real, delete the INSERT below,
+-- register the account through /register, and promote it with the
+-- UPDATE at the bottom instead.
+--
+-- `pwd` holds a BCRYPT HASH, never the password itself. The hash below
+-- was produced with bcryptjs, cost 10 — the same library and cost
+-- lib/password.js uses, so /api/auth/login verifies it normally.
 -- =====================================================================
 
 
 -- ---------------------------------------------------------------------
--- OPTION A — promote an account that already exists  (no new password)
+-- Create the admin, but only if that address is not already taken.
 -- ---------------------------------------------------------------------
--- The account keeps whatever password it already had. Put its email in
--- and run. Safe to run more than once.
+-- `accounts.email` has no UNIQUE index, so a plain INSERT run twice
+-- would make two rows and /api/auth/login would silently use whichever
+-- came first. The WHERE NOT EXISTS is what keeps this safe to re-run —
+-- scripts/migrate.mjs already skips applied files, but the file is also
+-- run by hand often enough to matter.
+INSERT INTO accounts (f_name, l_name, email, pwd, role, coin, streak)
+SELECT 'Admin', '', 'admin@tarotdiary.com', '$2b$10$QRwD/eiMHOwalWtFXiHnUOEMPyLLZeHIcEs9MSVeiweWW8xTddrtW', 'admin', 50, 0
+WHERE NOT EXISTS (
+    SELECT 1 FROM accounts WHERE email = 'admin@tarotdiary.com'
+);
 
--- UPDATE accounts SET role = 'admin' WHERE email = 'change-me@example.com';
+-- If the address existed already as an ordinary account — someone
+-- registered it through the app before this ran — promote it rather
+-- than leaving a second, unreachable admin row behind. Its own password
+-- is kept; only the role changes.
+UPDATE accounts SET role = 'admin' WHERE email = 'admin@tarotdiary.com';
 
 
 -- ---------------------------------------------------------------------
--- OPTION B — a dedicated admin account  (what this project uses)
+-- Promoting somebody else later
 -- ---------------------------------------------------------------------
--- `pwd` holds a BCRYPT HASH, never the password itself, so the row cannot
--- be written from plain SQL. Register the account through the app first:
+-- Register the account through /register first, then run:
 --
---   1. Open /register and sign up with the address you want to use.
---      That writes a correctly hashed password and role 'user'.
---   2. Run the line below with that address.
---
--- Or hash it yourself, from the project root:
---
---   node --env-file=.env -e "
---     const bcrypt = require('bcryptjs');
---     const mysql = require('mysql2/promise');
---     (async () => {
---       const db = await mysql.createConnection({
---         host: process.env.DB_HOST, user: process.env.DB_USER,
---         password: process.env.DB_PASSWORD, database: process.env.DB_NAME,
---         port: Number(process.env.DB_PORT) || 3306,
---       });
---       await db.execute(
---         \"INSERT INTO accounts (f_name, l_name, email, pwd, role, coin, streak) VALUES (?, '', ?, ?, 'admin', 50, 0)\",
---         ['Admin', 'admin@tarotdiary.com', await bcrypt.hash('CHANGE-ME', 10)]
---       );
---       await db.end();
---     })();
---   "
---
--- The password must pass lib/validators/password.js — one uppercase, one
--- lowercase, one digit, one special character, no whitespace — and the
--- register route's own minimum of 8 characters. `email` has no UNIQUE
--- index, so check for the address before inserting or you will get two
--- rows and /api/auth/login will take the first one.
-
--- UPDATE accounts SET role = 'admin' WHERE email = 'admin@tarotdiary.com';
+--   UPDATE accounts SET role = 'admin' WHERE email = 'you@example.com';
 
 
--- Check it took. Expect the admin account(s) and nothing else.
+-- Check it took. Expect exactly one admin.
 SELECT id, email, role FROM accounts WHERE role = 'admin';

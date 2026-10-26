@@ -54,6 +54,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
+# The schema loader, and the .sql files it reads (which arrived with
+# public/ above). RDS has no public route, so this image is the only
+# thing that can reach the database — see scripts/migrate.mjs. It reuses
+# the mysql2 already traced into standalone, so it adds no dependencies.
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/migrate.mjs ./scripts/migrate.mjs
+
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000

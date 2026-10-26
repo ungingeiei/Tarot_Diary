@@ -37,6 +37,11 @@ export default function ManageCardPage() {
 // and anything added to it vanished on the next refresh.
     const [cards, setCards] = useState([]);
     const [loadError, setLoadError] = useState("");
+    // --- ADDED: errors belonging to the ADD CARD panel.
+    // loadError is printed in the page header, which the open panel
+    // covers — so a refused save produced no visible reaction at all
+    // and the button looked dead. This one is rendered inside the form.
+    const [formError, setFormError] = useState("");
     const [busy, setBusy] = useState(false);
 
     const loadCards = useCallback(async () => {
@@ -87,6 +92,7 @@ export default function ManageCardPage() {
 
     // =====================================OPEN ADD CARD=====================================
     const handleOpenAddCard = () => {
+        setFormError("");
         setCardName("");
         setPrediction("");
         setShowAddCard(true);
@@ -145,7 +151,7 @@ export default function ManageCardPage() {
         setImageName(file.name);
 
         setUploading(true);
-        setLoadError("");
+        setFormError("");
         // Whatever was uploaded a moment ago is now being replaced.
         const replaced = image;
         try {
@@ -154,7 +160,7 @@ export default function ManageCardPage() {
             const res = await fetch("/api/admin/cards/image", { method: "POST", body });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.success) {
-                setLoadError(data.message || "Could not upload the image.");
+                setFormError(data.message || "Could not upload the image.");
                 setImage("");
                 setImageName("");
                 event.target.value = "";
@@ -163,7 +169,7 @@ export default function ManageCardPage() {
             setImage(data.url);
             if (replaced && replaced !== data.url) discardUpload(replaced);
         } catch {
-            setLoadError("Could not upload the image.");
+            setFormError("Could not upload the image.");
             setImage("");
             setImageName("");
         } finally {
@@ -173,12 +179,25 @@ export default function ManageCardPage() {
 
     const handleSaveCard = async (event) => {
         event.preventDefault();
+        setFormError("");
 
-        if (
-            !cardName.trim() ||
-            !prediction.trim() ||
-            !advice.trim()
-        ) {
+        // --- CHANGED: this used to `return` with no message when a
+        // field was empty, so pressing SAVE CARD did nothing and gave
+        // no reason. Name the missing fields instead.
+        const missing = [
+            !cardName.trim() && "card name",
+            !prediction.trim() && "prediction",
+            !advice.trim() && "advice",
+        ].filter(Boolean);
+        if (missing.length > 0) {
+            setFormError(`Please fill in the ${missing.join(", ")}.`);
+            return;
+        }
+
+        // The upload runs as soon as a file is picked; saving mid-upload
+        // would store a card with no picture.
+        if (uploading) {
+            setFormError("The image is still uploading. Please wait a moment.");
             return;
         }
 
@@ -198,7 +217,7 @@ export default function ManageCardPage() {
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.success) {
                 // e.g. this card already has a reading for that category
-                setLoadError(data.message || "Could not add the card.");
+                setFormError(data.message || "Could not add the card.");
                 return;
             }
             // Re-read rather than guessing the new row: the server
@@ -206,6 +225,10 @@ export default function ManageCardPage() {
             // card that already existed.
             await loadCards();
             handleCancel({ keepImage: true });
+        } catch {
+            // A dropped connection used to leave the button spinning
+            // with nothing said.
+            setFormError("Could not reach the server. Please try again.");
         } finally {
             setBusy(false);
         }
@@ -612,6 +635,12 @@ export default function ManageCardPage() {
                                         is chosen, and what is kept in state is
                                         the path the upload answers with — that
                                         is what `cards.pict` stores. */}
+                                    {/* --- CHANGED: the preview is now a
+                                        thumbnail inside the field. It used
+                                        to be a 120x170 block underneath,
+                                        which grew the control as soon as a
+                                        file was chosen and pushed the rest
+                                        of the form down. --- */}
                                     <FileField
                                         accept="image/jpeg,image/png,image/webp,image/gif"
                                         disabled={uploading}
@@ -620,17 +649,10 @@ export default function ManageCardPage() {
                                         label="Choose image"
                                         emptyText="JPEG, PNG, WebP or GIF"
                                         ariaLabel="Card image"
+                                        previewUrl={uploading ? "" : image}
                                     />
 
                                     {uploading && <p className="add-card-hint">Uploading…</p>}
-
-                                    {image && !uploading && (
-                                        <img
-                                            src={image}
-                                            alt="Card preview"
-                                            className="add-card-preview"
-                                        />
-                                    )}
                                 </div>
 
                                 <div className="add-card-column">
@@ -647,6 +669,12 @@ export default function ManageCardPage() {
 
                             </div>
 
+                            {/* Inside the panel, where the panel covers
+                                the header copy. */}
+                            {formError && (
+                                <p className="login-error add-card-error">{formError}</p>
+                            )}
+
                             <div className="add-card-form-divider"></div>
 
                             <div className="add-card-actions">
@@ -654,8 +682,9 @@ export default function ManageCardPage() {
                                 <button
                                     type="submit"
                                     className="save-card-btn"
+                                    disabled={busy || uploading}
                                 >
-                                    SAVE CARD
+                                    {busy ? "SAVING..." : "SAVE CARD"}
                                 </button>
 
                                 <button

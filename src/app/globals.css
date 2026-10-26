@@ -1809,7 +1809,12 @@ MANAGE CARD PAGE
     display: flex;
     align-items: center;
     gap: 14px;
+    /* Fixed height, so the field is exactly the same size whether or
+       not an image has been chosen — the thumbnail sits inside it. */
     height: 46px;
+    /* Same reason as .add-card-column: let the filename be truncated
+       rather than letting it set the width. */
+    min-width: 0;
     padding: 0 14px;
     box-sizing: border-box;
     border: 1px solid rgba(201, 169, 110, 0.65);
@@ -1854,6 +1859,17 @@ MANAGE CARD PAGE
 .file-field-input:focus-visible + .file-field-button {
     outline: 2px solid rgba(201, 169, 110, 0.8);
     outline-offset: 2px;
+}
+
+/* The chosen image, shown in the row rather than as a block below, so
+   picking a file does not change the control's size. */
+.file-field-thumb {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+    border: 1px solid rgba(201, 169, 110, 0.5);
+    border-radius: 4px;
 }
 
 .file-field-name {
@@ -2308,6 +2324,15 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
     flex: 1;
     display: flex;
     flex-direction: column;
+    /* --- ADDED: THIS IS WHAT KEPT THE ROW FROM OVERFLOWING.
+       A flex item defaults to min-width:auto, meaning "never shrink
+       below my content". The chosen file's name is content, so a long
+       one (a Thai screenshot name runs to ~40 characters) widened this
+       column until TIME OR CATEGORY was pushed off the panel — even
+       though .file-field-name already had ellipsis, because the
+       ellipsis only applies once the box is allowed to be narrow.
+       min-width: 0 is what allows it. */
+    min-width: 0;
 }
 
 .add-card-column input,
@@ -2960,12 +2985,22 @@ box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.08);
 }
 
 /* Card image upload (admin console) */
+/* The add panel's own error line. The page-level .manage-card-error
+   lives in the header, which this panel covers. */
+.add-card-error {
+    margin: 0 0 14px;
+    font-size: 13px;
+}
+
 .add-card-hint {
     margin: 6px 0 0;
     color: #c9a96e;
     font-size: 13px;
 }
 
+/* No longer used by the add form — the preview moved into the field
+   (.file-field-thumb) so the control keeps its height. Kept for the
+   edit form and anything else that still wants a block preview. */
 .add-card-preview {
     margin-top: 10px;
     max-width: 120px;

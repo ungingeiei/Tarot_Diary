@@ -11,5 +11,9 @@ npm-debug.log
 .env.*
 *.md
 infra
-public/database
-scripts
+# public/database and scripts/migrate.mjs are deliberately NOT ignored:
+# on AWS the database has no public route, so the only way to load the
+# schema is from inside the VPC — i.e. from this image. See
+# scripts/migrate.mjs.
+scripts/*
+!scripts/migrate.mjs

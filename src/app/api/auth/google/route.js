@@ -19,14 +19,17 @@ import {
   STATE_COOKIE,
   VERIFIER_COOKIE,
 } from "@/lib/googleOAuth";
+import { cookiesAreSecure, publicUrl } from "@/lib/publicUrl";
 
 export async function GET(request) {
   if (!getGoogleConfig()) {
     // Misconfiguration is a server problem, but the user is sitting in
     // a browser — send them back to the login page with a message
     // rather than showing a raw 500.
-    const url = new URL("/login?error=google_not_configured", request.url);
-    return Response.redirect(url, 302);
+    // publicUrl(), not `new URL(path, request.url)`: behind the load
+    // balancer request.url is http://0.0.0.0:3000/… and redirecting a
+    // browser there sends it nowhere. See lib/publicUrl.js.
+    return Response.redirect(publicUrl(request, "/login?error=google_not_configured"), 302);
   }
 
   const state = createState();
@@ -35,7 +38,10 @@ export async function GET(request) {
   const cookieStore = await cookies();
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // Secure only when the site really is HTTPS — on plain HTTP the
+    // browser would drop these, and the state check on the way back
+    // from Google would fail with google_state_mismatch.
+    secure: cookiesAreSecure(),
     sameSite: "lax", // must survive the cross-site redirect back from Google
     path: "/",
     maxAge: OAUTH_COOKIE_MAX_AGE,

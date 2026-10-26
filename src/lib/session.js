@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { cookiesAreSecure } from "./publicUrl";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 export const SESSION_COOKIE = "tarotdiary_session";
@@ -29,7 +30,14 @@ export async function setSessionCookie(token) {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // --- CHANGED: was `process.env.NODE_ENV === "production"`.
+    // NODE_ENV is "production" on AWS, but the deployed site is plain
+    // HTTP, and a browser never sends a Secure cookie over HTTP. The
+    // result was a sign-in that reported success and left the user
+    // logged out on the very next page. cookiesAreSecure() asks whether
+    // the site is actually HTTPS instead of guessing from the build
+    // mode. See lib/publicUrl.js.
+    secure: cookiesAreSecure(),
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,

@@ -18,6 +18,12 @@ import { useRef } from "react";
  *
  * `onChange` receives the original change event, so callers read
  * `event.target.files[0]` exactly as before.
+ *
+ * --- ADDED: `previewUrl` draws the chosen image as a small square
+ * INSIDE the field. The add-card form used to put a 120x170 preview in
+ * a block underneath, which made the whole control grow the moment a
+ * file was picked and shoved the rest of the form down. A thumbnail
+ * that sits in the row keeps the field exactly the size it was empty.
  * ---------------------------------------------------------------------
  */
 export function FileField({
@@ -28,6 +34,7 @@ export function FileField({
   label = "Choose image",
   emptyText = "No file chosen",
   ariaLabel,
+  previewUrl = "",
 }) {
   const inputRef = useRef(null);
 
@@ -54,6 +61,12 @@ export function FileField({
       >
         {label}
       </button>
+
+      {/* Decoration: the filename beside it already says which file
+          this is, so a screen reader gains nothing from the image. */}
+      {previewUrl && (
+        <img src={previewUrl} alt="" aria-hidden="true" className="file-field-thumb" />
+      )}
 
       <span className={`file-field-name${fileName ? "" : " is-empty"}`}>
         {fileName || emptyText}
